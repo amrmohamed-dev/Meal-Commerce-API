@@ -1,16 +1,36 @@
 import express from 'express';
-
-import userRoutes from './modules/user/user.route.js';
-import mealRoutes from './modules/meal/meal.route.js';
-import categoryRoutes from './modules/category/category.route.js';
+import morgan from 'morgan';
+import cookieParser from 'cookie-parser';
+import mealRouter from './modules/meal/meal.route.js';
+import categoryRouter from './modules/category/category.route.js';
+import AppError from './utils/error/appError.js';
+import globalErrorHandler from './middlewares/globalErrorHandler.js';
 
 const app = express();
 
-app.use(express.json());
+app.enable('trust proxy');
 
-// 🔹 Routes
-app.use('/api/v1/users', userRoutes);
-app.use('/api/v1/meals', mealRoutes);
-app.use('/api/v1/categories', categoryRoutes);
+if (process.env.NODE_ENV === 'development') {
+  app.use(morgan('dev'));
+}
+
+app.disable('x-powered-by');
+
+app.use(cookieParser());
+app.use(express.json({ limit: '5kb' }));
+
+app.use('/api/v1/meals', mealRouter);
+app.use('/api/v1/categories', categoryRouter);
+
+app.use((req, res, next) => {
+  next(
+    new AppError(
+      `Can't find this route '${req.originalUrl}' on this server!`,
+      404,
+    ),
+  );
+});
+
+app.use(globalErrorHandler);
 
 export default app;
