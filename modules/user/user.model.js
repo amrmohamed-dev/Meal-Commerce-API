@@ -1,73 +1,65 @@
-import mongoose from "mongoose";
-import validator from "validator";
+import crypto from 'crypto';
+import mongoose from 'mongoose';
+import bcrypt from 'bcrypt';
 
 const userSchema = new mongoose.Schema(
   {
     name: {
       type: String,
-      required: true,
-      minlength: 3,
-      maxlength: 28,
+      trim: true,
+      minlength: [3, 'Name must be at least 3 characters.'],
+      maxlength: [35, 'Name must not exceed 35 characters.'],
+      required: [true, 'Name is required.'],
     },
-
     email: {
       type: String,
-      required: true,
-      unique: true,
-      validate: {
-        validator: validator.isEmail,
-        message: "Must be a valid email",
-      },
+      lowercase: true,
+      unique: [true, 'Email is already in use.'],
+      required: [true, 'Email is required.'],
     },
-
     password: {
       type: String,
-      required: true,
-      minlength: 8,
+      minlength: [8, 'Password must be at least 8 characters.'],
+      maxlength: [30, 'Password must not exceed 30 characters.'],
+      required: [true, 'Password is required.'],
     },
-
-    phone: {
-      type: String,
-      required: true,
-    },
-
+    passwordChangedAt: Date,
     role: {
       type: String,
-      enum: ["user", "admin"],
-      default: "user",
+      enum: ['user', 'admin'],
+      default: 'user',
     },
-
-    address: [
+    phone: String,
+    address: {
+      street: String,
+      city: String,
+      notes: String,
+    },
+    photo: {
+      path: String,
+      publicId: String,
+    },
+    favouriteMeals: [
       {
-        street: {
-          type: String,
-          required: true,
+        meal: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: 'Meal',
         },
-        city: {
-          type: String,
-          required: true,
-        },
-        note: {
-          type: String,
-          maxlength: 100,
+        addedAt: {
+          type: Date,
+          default: Date.now,
         },
       },
     ],
-
-    favourites: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Meal",
-      },
-    ],
-
+    otp: {
+      code: String,
+      expires: Date,
+      purpose: String, //Email Confirmation or Password Recovery
+      default: {},
+    },
     isVerified: {
       type: Boolean,
       default: false,
-    },
-
-    passwordChangedAt: {
-      type: Date,
     },
   },
   {
@@ -75,4 +67,53 @@ const userSchema = new mongoose.Schema(
   },
 );
 
-export default mongoose.model("User", userSchema);
+const hiddenFields = (doc, ret) => {
+  delete ret.__v;
+  delete ret.updatedAt;
+  delete ret.isVerified;
+  delete ret.password;
+  delete ret.passwordChangedAt;
+  delete ret.otp;
+  return ret;
+};
+
+userSchema.set('toJSON', { transform: hiddenFields });
+userSchema.set('toObject', { transform: hiddenFields });
+
+userSchema.pre('save', async function () {
+  if (!this.isModified('password')) return;
+
+  this.password = await bcrypt.hash(this.password, 10);
+});
+
+userSchema.pre('save', function () {
+  if (this.isModified('password') && !this.isNew) {
+    this.passwordChangedAt = Date.now() - 1000;
+  }
+});
+
+userSchema.methods.correctPassword = async function (candidatePassword) {
+  return await bcrypt.compare(candidatePassword, this.password);
+};
+
+userSchema.methods.generateOtp = function (otpPurpose) {
+  const otp = crypto.randomInt(100000, 999999).toString();
+  this.otp.code = crypto.createHash('sha256').update(otp).digest('hex');
+  this.otp.expires = Date.now() + 10 * 60 * 1000;
+  this.otp.purpose = otpPurpose;
+  return otp;
+};
+
+userSchema.methods.changedPasswordAfter = function (jwtIat) {
+  if (this.passwordChangedAt) {
+    const passwordChangedTimestamp = Math.floor(
+      this.passwordChangedAt.getTime() / 1000,
+    );
+    return passwordChangedTimestamp > jwtIat;
+  }
+  return false;
+};
+
+const User = mongoose.model('User', userSchema);
+
+export default User;
