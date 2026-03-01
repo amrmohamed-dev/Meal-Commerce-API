@@ -1,6 +1,7 @@
 import express from 'express';
 import morgan from 'morgan';
 import cookieParser from 'cookie-parser';
+import authRouter from './modules/auth/auth.route.js';
 import AppError from './utils/error/appError.js';
 import globalErrorHandler from './middlewares/globalErrorHandler.js';
 
@@ -16,6 +17,8 @@ app.disable('x-powered-by');
 
 app.use(cookieParser());
 app.use(express.json({ limit: '5kb' }));
+
+app.use('/api/v1/auth', authRouter);
 
 app.use((req, res, next) => {
   next(
