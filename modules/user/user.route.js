@@ -1,19 +1,34 @@
-import express from "express";
-import {   getAllUsers,getOneUser,updateUser, deleteUser,createUser } from "./user.controller.js";
-const router = express.Router();
+import express from 'express';
+import * as userController from './user.controller.js';
+import * as authMiddleware from '../../middlewares/auth.middleware.js';
+import { updateMyPassword } from '../auth/auth.controller.js';
 
-router.get("/", getAllUsers);
+const userRouter = express.Router();
 
+userRouter.use(authMiddleware.isAuthenticated);
 
-router.get("/:id", getOneUser);
+userRouter
+  .route('/me')
+  .get(userController.getMe)
+  .patch(userController.updateMe)
+  .delete(userController.deleteMe);
 
+userRouter.patch('/me/update-password', updateMyPassword);
 
-router.post("/",createUser );
+// Admin
+userRouter.use(authMiddleware.restrictTo('admin'));
 
+userRouter
+  .route('/')
+  .get(userController.getAllUsers)
+  .post(userController.createUser);
 
-router.patch("/:id", updateUser);
+userRouter
+  .route('/:id')
+  .get(userController.getOneUser)
+  .patch(userController.updateUser)
+  .delete(userController.deleteUser);
 
+userRouter.patch('/:id/role', userController.updateUserRole);
 
-router.delete("/:id", deleteUser);
-
-export default router;
+export default userRouter;
