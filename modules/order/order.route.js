@@ -9,11 +9,12 @@ import {
   updateOrderStatus,
 } from './order.controller.js';
 
-import { protect, restrictTo } from '../auth/auth.controller.js';
+// 👇 ده السطر الصح
+import { isAuthenticated, restrictTo } from '../../middlewares/auth.middleware.js';
 
 const router = express.Router();
 
-router.use(protect);
+router.use(isAuthenticated);
 
 // User endpoints
 router.post('/', createOrder);
@@ -24,7 +25,5 @@ router.patch('/:id/cancel', cancelOrder);
 // Admin endpoints
 router.get('/', restrictTo('admin'), getAllOrders);
 router.patch('/:id/status', restrictTo('admin'), updateOrderStatus);
-
-
 
 export default router;

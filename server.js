@@ -1,15 +1,13 @@
-import mongoose from 'mongoose';
-import dotenv from 'dotenv';
+import './config/dotenv.js';
 import app from './app.js';
+import dbConnection from './config/db.js';
+import processHandler from './utils/error/processHandler.js';
 
-dotenv.config();
+const port = process.env.PORT || 3000;
 
-const PORT = process.env.PORT || 3000;
+dbConnection();
 
-mongoose
-  .connect(process.env.MONGO_URL)
-  .then(() => {
-    console.log('DB connected');
-    app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-  })
-  .catch((err) => console.log(err));
+app.listen(port, () => console.log('Meal-Commerce is running'));
+
+processHandler();
+
