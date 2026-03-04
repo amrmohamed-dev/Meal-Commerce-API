@@ -1,4 +1,5 @@
 import User from './user.model.js';
+import Meal from '../meal/meal.model.js';
 import * as cloudinaryService from '../../services/cloudinary.service.js';
 import catchAsync from '../../utils/error/catchAsync.js';
 import AppError from '../../utils/error/appError.js';
@@ -55,6 +56,61 @@ const deleteMe = catchAsync(async (req, res, next) => {
   await user.deleteOne();
 
   res.status(204).send();
+});
+
+const getMyFavourites = catchAsync(async (req, res, next) => {
+  const { _id } = req.user;
+  const user = await User.findById(_id)
+    .select('favouriteMeals')
+    .populate('favouriteMeals.meal');
+
+  user.favouriteMeals.sort((a, b) => b.addedAt - a.addedAt);
+
+  res.status(200).json({
+    status: 'success',
+    data: {
+      favouriteMeals: user.favouriteMeals,
+    },
+  });
+});
+
+const toggleFavourite = catchAsync(async (req, res, next) => {
+  const { user } = req;
+  const { mealId } = req.params;
+
+  const meal = await Meal.findById(mealId);
+
+  if (!meal) {
+    return next(new AppError('No Meal found with that ID', 404));
+  }
+
+  const favIndex = user.favouriteMeals.findIndex((fav) =>
+    fav.meal.equals(mealId),
+  );
+
+  let action;
+
+  if (favIndex !== -1) {
+    action = 'removed from';
+    user.favouriteMeals.splice(favIndex, 1);
+  } else {
+    action = 'added to';
+    user.favouriteMeals.push({ meal: mealId });
+  }
+
+  await user.save({ validateModifiedOnly: true });
+
+  const populatedUser = await User.findById(user._id)
+    .select('favouriteMeals')
+    .populate('favouriteMeals.meal');
+
+  res.status(200).json({
+    status: 'success',
+    message: `Meal ${action} favourites`,
+    data: {
+      favouriteMeals: populatedUser.favouriteMeals,
+    },
+  });
 });
 
 const addProfilePhoto = catchAsync(async (req, res, next) => {
@@ -255,6 +311,8 @@ export {
   getMe,
   updateMe,
   deleteMe,
+  getMyFavourites,
+  toggleFavourite,
   addProfilePhoto,
   deleteProfilePhoto,
   getAllUsers,
