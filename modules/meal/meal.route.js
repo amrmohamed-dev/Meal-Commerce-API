@@ -1,16 +1,25 @@
-import express from "express";
-import {
-  getAllMeals,
-  getOneMeal,
-  updateMeal,
-  deleteMeal,
-  createMeal,
-} from "./meal.controller.js";
+import express from 'express';
+import * as mealController from './meal.controller.js';
+import * as authMiddleware from '../../middlewares/auth.middleware.js';
+import fileUpload from '../../middlewares/upload.middleware.js';
 
-const router = express.Router();
+const mealRouter = express.Router();
 
-router.route("/").get(getAllMeals).post(createMeal);
+mealRouter
+  .route('/')
+  .get(mealController.getAllMeals)
+  .post(
+    authMiddleware.isAuthenticated,
+    authMiddleware.restrictTo('admin'),
+    fileUpload('image'),
+    mealController.createMeal,
+  );
 
-router.route("/:id").get(getOneMeal).patch(updateMeal).delete(deleteMeal);
+mealRouter
+  .route('/:id')
+  .get(mealController.getOneMeal)
+  .all(authMiddleware.isAuthenticated, authMiddleware.restrictTo('admin'))
+  .patch(fileUpload('image'), mealController.updateMeal)
+  .delete(mealController.deleteMeal);
 
-export default router;
+export default mealRouter;
