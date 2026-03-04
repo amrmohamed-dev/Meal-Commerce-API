@@ -1,18 +1,25 @@
 import express from 'express';
-
-const router = express.Router();
-
 import * as categoryController from './category.controller.js';
+import * as authMiddleware from '../../middlewares/auth.middleware.js';
+import fileUpload from '../../middlewares/upload.middleware.js';
 
-router
+const categoryRouter = express.Router();
+
+categoryRouter
   .route('/')
   .get(categoryController.getAllCategories)
-  .post(categoryController.createCategory);
+  .post(
+    authMiddleware.isAuthenticated,
+    authMiddleware.restrictTo('admin'),
+    fileUpload('image'),
+    categoryController.createCategory,
+  );
 
-router
+categoryRouter
   .route('/:id')
   .get(categoryController.getOneCategory)
-  .patch(categoryController.updateCategory)
+  .all(authMiddleware.isAuthenticated, authMiddleware.restrictTo('admin'))
+  .patch(fileUpload('image'), categoryController.updateCategory)
   .delete(categoryController.deleteCategory);
 
-export default router;
+export default categoryRouter;
