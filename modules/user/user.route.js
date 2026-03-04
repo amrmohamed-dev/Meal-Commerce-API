@@ -2,6 +2,8 @@ import express from 'express';
 import * as userController from './user.controller.js';
 import * as authMiddleware from '../../middlewares/auth.middleware.js';
 import { updateMyPassword } from '../auth/auth.controller.js';
+import validation from '../../middlewares/validation.js';
+import { updatePasswordSchema } from '../auth/auth.validation.js';
 import fileUpload from '../../middlewares/upload.middleware.js';
 
 const userRouter = express.Router();
@@ -14,7 +16,11 @@ userRouter
   .patch(userController.updateMe)
   .delete(userController.deleteMe);
 
-userRouter.patch('/me/update-password', updateMyPassword);
+userRouter.patch(
+  '/me/update-password',
+  validation(updatePasswordSchema),
+  updateMyPassword,
+);
 
 userRouter.get('/me/favourites', userController.getMyFavourites);
 userRouter.patch('/me/favourites/:mealId', userController.toggleFavourite);

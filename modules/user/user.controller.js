@@ -35,10 +35,21 @@ const getMe = (req, res) => {
 
 const updateMe = catchAsync(async (req, res, next) => {
   const { _id } = req.user;
-  const { name } = req.body;
+  const { name, phone, address } = req.body;
+
   const user = await User.findById(_id);
-  user.name = name;
+
+  if (name) user.name = name;
+  if (phone) user.phone = phone;
+  if (address) {
+    user.address = {
+      ...user.address,
+      ...address,
+    };
+  }
+
   await user.save({ validateModifiedOnly: true });
+
   res.status(200).json({
     status: 'success',
     data: {
@@ -51,7 +62,10 @@ const deleteMe = catchAsync(async (req, res, next) => {
   const { _id } = req.user;
 
   const user = await ensureNotLastAdmin(_id);
-  if (!user) return;
+
+  if (user.image?.publicId) {
+    await cloudinaryService.deleteFromCloudinary(user.image.publicId);
+  }
 
   await user.deleteOne();
 
@@ -260,7 +274,10 @@ const deleteUser = catchAsync(async (req, res, next) => {
   const { id } = req.params;
 
   const user = await ensureNotLastAdmin(id);
-  if (!user) return;
+
+  if (user.image?.publicId) {
+    await cloudinaryService.deleteFromCloudinary(user.image.publicId);
+  }
 
   await user.deleteOne();
 
