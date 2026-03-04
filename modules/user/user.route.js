@@ -2,6 +2,7 @@ import express from 'express';
 import * as userController from './user.controller.js';
 import * as authMiddleware from '../../middlewares/auth.middleware.js';
 import { updateMyPassword } from '../auth/auth.controller.js';
+import fileUpload from '../../middlewares/upload.middleware.js';
 
 const userRouter = express.Router();
 
@@ -14,6 +15,11 @@ userRouter
   .delete(userController.deleteMe);
 
 userRouter.patch('/me/update-password', updateMyPassword);
+
+userRouter
+  .route('/me/photo')
+  .patch(fileUpload('image'), userController.addProfilePhoto)
+  .delete(userController.deleteProfilePhoto);
 
 // Admin
 userRouter.use(authMiddleware.restrictTo('admin'));
