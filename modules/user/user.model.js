@@ -35,9 +35,15 @@ const userSchema = new mongoose.Schema(
       city: String,
       notes: String,
     },
-    photo: {
-      path: String,
-      publicId: String,
+    image: {
+      url: {
+        type: String,
+        default: null,
+      },
+      publicId: {
+        type: String,
+        default: null,
+      },
     },
     favouriteMeals: [
       {

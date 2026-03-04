@@ -2,6 +2,9 @@ import express from 'express';
 import morgan from 'morgan';
 import cookieParser from 'cookie-parser';
 import authRouter from './modules/auth/auth.route.js';
+import userRouter from './modules/user/user.route.js';
+import mealRouter from './modules/meal/meal.route.js';
+import categoryRouter from './modules/category/category.route.js';
 import AppError from './utils/error/appError.js';
 import globalErrorHandler from './middlewares/globalErrorHandler.js';
 
@@ -19,6 +22,9 @@ app.use(cookieParser());
 app.use(express.json({ limit: '5kb' }));
 
 app.use('/api/v1/auth', authRouter);
+app.use('/api/v1/users', userRouter);
+app.use('/api/v1/meals', mealRouter);
+app.use('/api/v1/categories', categoryRouter);
 
 app.use((req, res, next) => {
   next(
