@@ -16,6 +16,9 @@ userRouter
 
 userRouter.patch('/me/update-password', updateMyPassword);
 
+userRouter.get('/me/favourites', userController.getMyFavourites);
+userRouter.patch('/me/favourites/:mealId', userController.toggleFavourite);
+
 userRouter
   .route('/me/photo')
   .patch(fileUpload('image'), userController.addProfilePhoto)
