@@ -1,79 +1,161 @@
 import Order from './order.model.js';
-import Cart from '../cart/cart.model.js'; 
+import Cart from '../cart/cart.model.js';
+import catchAsync from '../../utils/error/catchAsync.js';
+import AppError from '../../utils/error/appError.js';
 
-// Create Order from Cart
-export const createOrder = async (req, res) => {
-  try {
-    const cart = await Cart.findOne({ user: req.user._id }).populate('items.meal');
-    if (!cart || cart.items.length === 0)
-      return res.status(400).json({ message: 'Cart is empty' });
+const createOrder = catchAsync(async (req, res, next) => {
+  const { _id } = req.user;
 
-    let total = 0;
-    const orderItems = cart.items.map((item) => {
-      total += item.meal.price * item.quantity;
-      return {
-        meal: item.meal._id,
-        quantity: item.quantity,
-        price: item.meal.price,
-      };
-    });
+  const cart = await Cart.findOne({ user: _id });
 
-    const order = await Order.create({
-      user: req.user._id,
-      items: orderItems,
-      totalPrice: total,
-    });
-
-    cart.items = [];
-    await cart.save();
-
-    res.status(201).json(order);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
+  if (!cart) {
+    return next(new AppError('You do not have a cart yet', 404));
   }
-};
 
-// Get My Orders
-export const getMyOrders = async (req, res) => {
-  const orders = await Order.find({ user: req.user._id }).populate("items.meal");
-  res.json(orders);
-};
+  if (cart.cartItems.length === 0) {
+    return next(new AppError('Your cart is empty', 400));
+  }
 
-// Get Order by ID
-export const getOrderById = async (req, res) => {
-  const order = await Order.findById(req.params.id).populate("items.meal");
-  if (!order) return res.status(404).json({ message: "Order not found" });
-  res.json(order);
-};
+  const order = await Order.create({
+    user: _id,
+    cartItems: [...cart.cartItems],
+    totalPrice: cart.totalPrice,
+    shippingAddress: req.body.shippingAddress,
+  });
 
-// Cancel Order (User)
-export const cancelOrder = async (req, res) => {
-  const order = await Order.findById(req.params.id);
-  if (!order) return res.status(404).json({ message: "Order not found" });
-  if (order.status !== "pending")
-    return res.status(400).json({ message: "Cannot cancel this order" });
+  cart.cartItems = [];
+  await cart.save();
 
-  order.status = "cancelled";
+  res.status(201).json({
+    status: 'success',
+    data: {
+      order,
+    },
+  });
+});
+
+const getMyOrders = catchAsync(async (req, res) => {
+  const { _id } = req.user;
+
+  const orders = await Order.find({ user: _id })
+    .populate('cartItems.meal')
+    .sort('-createdAt');
+
+  res.status(200).json({
+    status: 'success',
+    data: {
+      orders,
+    },
+  });
+});
+
+const getOneOrder = catchAsync(async (req, res, next) => {
+  const { id } = req.params;
+  const { _id, role } = req.user;
+
+  const order = await Order.findById(id).populate({
+    path: 'cartItems.meal',
+    select: 'name price image',
+  });
+
+  if (!order) {
+    return next(new AppError('No order found with that ID', 404));
+  }
+
+  if (role !== 'admin' && !order.user.equals(_id)) {
+    return next(
+      new AppError('You are not allowed to access this order', 403),
+    );
+  }
+
+  res.status(200).json({
+    status: 'success',
+    data: {
+      order,
+    },
+  });
+});
+
+const cancelOrder = catchAsync(async (req, res, next) => {
+  const { id } = req.params;
+  const { _id: userId } = req.user;
+
+  const order = await Order.findById(id);
+
+  if (!order) {
+    return next(new AppError('No order found with that ID', 404));
+  }
+
+  if (!order.user.equals(userId)) {
+    return next(new AppError('Not authorized to cancel this order', 403));
+  }
+
+  if (!['pending', 'confirmed'].includes(order.status)) {
+    return next(new AppError('Cannot cancel this order', 400));
+  }
+
+  order.status = 'cancelled';
   await order.save();
-  res.json({ message: "Order cancelled" });
-};
 
-// Admin – Get all orders
-export const getAllOrders = async (req, res) => {
-  const orders = await Order.find().populate("user items.meal");
-  res.json(orders);
-};
+  res.status(200).json({
+    status: 'success',
+    message: 'Order cancelled successfully',
+  });
+});
 
-// Admin – Update order status
-export const updateOrderStatus = async (req, res) => {
-  const order = await Order.findById(req.params.id);
-  if (!order) return res.status(404).json({ message: "Order not found" });
+const getAllOrders = catchAsync(async (req, res) => {
+  const orders = await Order.find()
+    .populate('user')
+    .populate('cartItems.meal');
+
+  res.status(200).json({
+    status: 'success',
+    data: {
+      orders,
+    },
+  });
+});
+
+const updateOrderStatus = catchAsync(async (req, res, next) => {
+  const { id } = req.params;
+
+  const order = await Order.findById(id);
+
+  if (!order) {
+    return next(new AppError('No order found with that ID', 404));
+  }
 
   const { status } = req.body;
-  if (!["pending","confirmed","shipped","delivered","cancelled"].includes(status))
-    return res.status(400).json({ message: "Invalid status" });
+
+  const validStatuses = [
+    'pending',
+    'confirmed',
+    'preparing',
+    'shipped',
+    'delivered',
+    'cancelled',
+  ];
+
+  if (!validStatuses.includes(status)) {
+    return next(new AppError('Invalid status', 400));
+  }
 
   order.status = status;
   await order.save();
-  res.json(order);
+
+  res.status(200).json({
+    status: 'success',
+    data: {
+      order,
+    },
+  });
+});
+
+export {
+  createOrder,
+  getMyOrders,
+  getOneOrder,
+  cancelOrder,
+  getAllOrders,
+  updateOrderStatus,
 };

@@ -1,29 +1,20 @@
 import express from 'express';
+import * as orderController from './order.controller.js';
+import * as authMiddleware from '../../middlewares/auth.middleware.js';
 
-import {
-  createOrder,
-  getMyOrders,
-  getOrderById,
-  cancelOrder,
-  getAllOrders,
-  updateOrderStatus,
-} from './order.controller.js';
+const orderRouter = express.Router();
 
-// 👇 ده السطر الصح
-import { isAuthenticated, restrictTo } from '../../middlewares/auth.middleware.js';
+orderRouter.use(authMiddleware.isAuthenticated);
 
-const router = express.Router();
+orderRouter.post('/', orderController.createOrder);
+orderRouter.get('/me', orderController.getMyOrders);
+orderRouter.get('/:id', orderController.getOneOrder);
+orderRouter.patch('/:id/cancel', orderController.cancelOrder);
 
-router.use(isAuthenticated);
+// Admin
+orderRouter.use(authMiddleware.restrictTo('admin'));
 
-// User endpoints
-router.post('/', createOrder);
-router.get('/my-orders', getMyOrders);
-router.get('/:id', getOrderById);
-router.patch('/:id/cancel', cancelOrder);
+orderRouter.get('/', orderController.getAllOrders);
+orderRouter.patch('/:id/status', orderController.updateOrderStatus);
 
-// Admin endpoints
-router.get('/', restrictTo('admin'), getAllOrders);
-router.patch('/:id/status', restrictTo('admin'), updateOrderStatus);
-
-export default router;
+export default orderRouter;
