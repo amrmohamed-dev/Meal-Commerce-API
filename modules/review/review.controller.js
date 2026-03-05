@@ -1,117 +1,129 @@
-import Review from "../models/review.model.js";
+import Review from './review.model.js';
+import Meal from '../meal/meal.model.js';
+import catchAsync from '../../utils/error/catchAsync.js';
+import AppError from '../../utils/error/appError.js';
 
-export const getAllReviews = async (req, res) => {
-  try {
-    const filter = req.query.mealId ? { meal: req.query.mealId } : {};
-
-    const reviews = await Review.find(filter)
-      .populate("user", "name email image")
-      .populate("meal", "name");
-
-    res.status(200).json({
-      status: "success",
-      data: {
-        reviews,
-      },
-    });
-  } catch (err) {
-    res.status(500).json({ message: err.message });
+const getAllReviews = catchAsync(async (req, res) => {
+  const filter = {};
+  if (req.query.mealId) {
+    filter.meal = req.query.mealId;
   }
-};
 
-export const getReview = async (req, res) => {
-  try {
-    const review = await Review.findById(req.params.id)
-      .populate("user", "name email image")
-      .populate("meal", "name");
+  const reviews = await Review.find(filter)
+    .populate('user', 'name email image')
+    .populate('meal', 'name')
+    .sort('-createdAt');
 
-    if (!review) return res.status(404).json({ message: "Review not found" });
+  res.status(200).json({
+    status: 'success',
+    data: {
+      reviews,
+    },
+  });
+});
 
-    res.status(200).json({
-      status: "success",
-      data: {
-        reviews,
-      },
-    });
-  } catch (err) {
-    res.status(500).json({ message: err.message });
+const getOneReview = catchAsync(async (req, res, next) => {
+  const { id } = req.params;
+
+  const review = await Review.findById(id)
+    .populate('user', 'name email image')
+    .populate('meal', 'name');
+
+  if (!review) {
+    return next(new AppError('Review not found', 404));
   }
-};
 
-export const createReview = async (req, res) => {
-  try {
-    const { rating, comment, mealId } = req.body;
-    const review = await Review.create({
-      rating,
-      comment,
-      mealId,
-      user: req.user.id,
-    });
+  res.status(200).json({
+    status: 'success',
+    data: {
+      review,
+    },
+  });
+});
 
-    res.status(201).json({
-      status: "success",
-      data: {
-        review,
-      },
-    });
-  } catch (err) {
-    if (err.code === 11000) {
-      return res.status(400).json({
-        message: "You already reviewed this meal",
-      });
-    }
+const createReview = catchAsync(async (req, res, next) => {
+  const { rating, comment, mealId: meal } = req.body;
+  const { _id: user } = req.user;
 
-    res.status(400).json({ message: err.message });
+  const existingMeal = await Meal.findById(meal);
+
+  if (!existingMeal) {
+    return next(new AppError('No meal found with that ID', 404));
   }
-};
 
-export const updateReview = async (req, res) => {
-  try {
-    const review = await Review.findById(req.params.id);
+  const existingReview = await Review.findOne({ user, meal });
 
-    if (!review) return res.status(404).json({ message: "Review not found" });
-
-    if (review.user.toString() !== req.user.id) {
-      return res.status(403).json({
-        message: "You are not allowed to update this review",
-      });
-    }
-
-    const { rating, comment, mealId } = req.body;
-
-    const updatedReview = await Review.findByIdAndUpdate(
-      req.params.id,
-      { rating, comment, mealId },
-      { new: true, runValidators: true },
-    );
-
-    res.status(200).json({
-      status: "success",
-      data: {
-        review: updatedReview,
-      },
-    });
-  } catch (err) {
-    res.status(400).json({ message: err.message });
+  if (existingReview) {
+    return next(new AppError('You already reviewed this meal', 400));
   }
-};
 
-export const deleteReview = async (req, res) => {
-  try {
-    const review = await Review.findById(req.params.id);
+  const review = await Review.create({
+    rating,
+    comment,
+    meal,
+    user,
+  });
 
-    if (!review) return res.status(404).json({ message: "Review not found" });
+  res.status(201).json({
+    status: 'success',
+    data: {
+      review,
+    },
+  });
+});
 
-    if (review.user.toString() !== req.user.id && req.user.role !== "admin") {
-      return res.status(403).json({
-        message: "You are not allowed to delete this review",
-      });
-    }
+const updateReview = catchAsync(async (req, res, next) => {
+  const { id } = req.params;
+  const { _id: user } = req.user;
 
-    await review.deleteOne();
+  const review = await Review.findById(id);
 
-    res.status(204).send();
-  } catch (err) {
-    res.status(500).json({ message: err.message });
+  if (!review) {
+    return next(new AppError('No review found with that ID', 404));
   }
+
+  if (!review.user.equals(user)) {
+    return next(new AppError('Not authorized to update this review', 403));
+  }
+
+  const { rating, comment } = req.body;
+
+  if (typeof rating === 'number') review.rating = rating;
+  if (typeof comment === 'string') review.comment = comment;
+
+  await review.save();
+
+  res.status(200).json({
+    status: 'success',
+    data: {
+      review,
+    },
+  });
+});
+
+const deleteReview = catchAsync(async (req, res, next) => {
+  const { id } = req.params;
+  const { _id: user, role } = req.user;
+
+  const review = await Review.findById(id);
+
+  if (!review) {
+    return next(new AppError('No review found with that ID', 404));
+  }
+
+  if (!review.user.equals(user) && role !== 'admin') {
+    return next(new AppError('Not authorized to delete this review', 403));
+  }
+
+  await review.deleteOne();
+
+  res.status(204).send();
+});
+
+export {
+  getAllReviews,
+  getOneReview,
+  createReview,
+  updateReview,
+  deleteReview,
 };
