@@ -151,6 +151,26 @@ const updateOrderStatus = catchAsync(async (req, res, next) => {
   });
 });
 
+const getOrderStats = catchAsync(async (req, res, next) => {
+  const stats = await Order.aggregate([
+    {
+      $group: {
+        _id: '$status',
+        nOrders: { $sum: 1 },
+        totalRevenue: { $sum: '$totalPrice' },
+        avgOrderPrice: { $avg: '$totalPrice' },
+      },
+    },
+  ]);
+
+  res.status(200).json({
+    status: 'success',
+    data: {
+      stats,
+    },
+  });
+});
+
 export {
   createOrder,
   getMyOrders,
@@ -158,4 +178,5 @@ export {
   cancelOrder,
   getAllOrders,
   updateOrderStatus,
+  getOrderStats,
 };

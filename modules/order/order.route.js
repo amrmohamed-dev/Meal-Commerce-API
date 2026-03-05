@@ -6,6 +6,13 @@ const orderRouter = express.Router();
 
 orderRouter.use(authMiddleware.isAuthenticated);
 
+// Admin analytics
+orderRouter.get(
+  '/stats',
+  authMiddleware.restrictTo('admin'),
+  orderController.getOrderStats,
+);
+
 orderRouter.post('/', orderController.createOrder);
 orderRouter.get('/me', orderController.getMyOrders);
 orderRouter.get('/:id', orderController.getOneOrder);
