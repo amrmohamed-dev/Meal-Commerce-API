@@ -6,8 +6,8 @@ import AppError from '../../utils/error/appError.js';
 
 const getAllMeals = catchAsync(async (req, res) => {
   const filter = {};
-  if (req.query.category) {
-    filter.category = req.query.category;
+  if (req.query.categoryId) {
+    filter.category = req.query.categoryId;
   }
 
   const meals = await Meal.find(filter).populate('category', 'name');

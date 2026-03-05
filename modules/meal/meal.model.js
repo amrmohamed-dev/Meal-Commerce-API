@@ -22,6 +22,17 @@ const mealSchema = new mongoose.Schema(
       required: [true, 'Price is required'],
       min: [0, 'Price cannot be negative'],
     },
+    ratingAverage: {
+      type: Number,
+      min: [0, 'RatingAverage must be positive.'],
+      max: [5, 'RatingAverage must not exceed 5.'],
+      default: 0,
+    },
+    ratingQuantity: {
+      type: Number,
+      min: [0, 'RatingQuantity must be positive.'],
+      default: 0,
+    },
     image: {
       url: {
         type: String,

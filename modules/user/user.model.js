@@ -103,6 +103,7 @@ userSchema.pre('deleteOne', async function () {
   if (user) {
     await mongoose.model('Cart').deleteOne({ user });
     await mongoose.model('Order').deleteMany({ user });
+    await mongoose.model('Review').deleteMany({ user });
   }
 });
 
