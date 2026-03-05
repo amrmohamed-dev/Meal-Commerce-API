@@ -1,12 +1,21 @@
 import express from 'express';
-import { addToCart, getMyCart } from './cart.controller.js';
-import { isAuthenticated } from '../../middlewares/auth.middleware.js';
+import * as cartController from './cart.controller.js';
+import * as authMiddleware from '../../middlewares/auth.middleware.js';
 
-const router = express.Router();
+const cartRouter = express.Router();
 
-router.use(isAuthenticated);
+cartRouter.use(authMiddleware.isAuthenticated);
 
-router.post('/', addToCart);
-router.get('/', getMyCart);
+cartRouter
+  .route('/')
+  .get(cartController.getCart)
+  .post(cartController.addToCart);
 
-export default router;
+cartRouter.delete('/clear', cartController.clearCart);
+
+cartRouter
+  .route('/:mealId')
+  .patch(cartController.updateMealQuantity)
+  .delete(cartController.deleteFromCart);
+
+export default cartRouter;
