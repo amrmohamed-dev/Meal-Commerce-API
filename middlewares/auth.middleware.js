@@ -25,6 +25,13 @@ const isAuthenticated = catchAsync(async (req, res, next) => {
   next();
 });
 
+const needVerify = (req, res, next) => {
+  if (!req.user.isVerified) {
+    return next(new AppError('Please verify your email first', 403));
+  }
+  next();
+};
+
 const restrictTo =
   (...roles) =>
   (req, res, next) => {
@@ -39,4 +46,4 @@ const restrictTo =
     next();
   };
 
-export { isAuthenticated, restrictTo };
+export { isAuthenticated, needVerify, restrictTo };

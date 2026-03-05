@@ -5,6 +5,7 @@ import * as authMiddleware from '../../middlewares/auth.middleware.js';
 const orderRouter = express.Router();
 
 orderRouter.use(authMiddleware.isAuthenticated);
+orderRouter.use(authMiddleware.needVerify);
 
 // Admin analytics
 orderRouter.get(

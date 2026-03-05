@@ -98,6 +98,14 @@ userSchema.pre('save', function () {
   }
 });
 
+userSchema.pre('deleteOne', async function () {
+  const { _id: user } = this.getFilter();
+  if (user) {
+    await mongoose.model('Cart').deleteOne({ user });
+    await mongoose.model('Order').deleteMany({ user });
+  }
+});
+
 userSchema.methods.correctPassword = async function (candidatePassword) {
   return await bcrypt.compare(candidatePassword, this.password);
 };
