@@ -4,6 +4,7 @@ import mongoose from 'mongoose';
 //   '<USERNAME>',
 //   process.env.DATABASE_USERNAME,
 // ).replace('<PASSWORD>', process.env.DATABASE_PASSWORD);
+// console.log(DB);
 
 const DB = process.env.DB_LOCAL;
 

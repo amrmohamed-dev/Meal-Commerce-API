@@ -2605,8 +2605,6 @@ snapshots:
     dependencies:
       mime-db: 1.52.0
 
-  mime-db@1.54.0: {}
-
   mime-types@3.0.2:
     dependencies:
       mime-db: 1.54.0

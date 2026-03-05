@@ -35,9 +35,9 @@
     "cookie-parser": "^1.4.7",
     "dotenv": "^17.3.1",
     "express": "^5.2.1",
-    "joi": "^18.0.2",
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.2.3",
+    "joi": "^18.0.2",
     "morgan": "^1.10.1",
     "multer": "^2.1.0",
     "nodemailer": "^8.0.1"
