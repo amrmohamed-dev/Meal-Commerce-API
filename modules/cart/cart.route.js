@@ -5,6 +5,7 @@ import * as authMiddleware from '../../middlewares/auth.middleware.js';
 const cartRouter = express.Router();
 
 cartRouter.use(authMiddleware.isAuthenticated);
+cartRouter.use(authMiddleware.needVerify);
 
 cartRouter
   .route('/')
