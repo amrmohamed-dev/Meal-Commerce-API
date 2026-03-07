@@ -1,0 +1,36 @@
+.auth-wrap {
+  display: grid;
+  place-items: center;
+  min-height: 70vh;
+}
+
+.auth-card {
+  width: min(100%, 460px);
+  padding: 1.5rem;
+}
+
+.auth-logo {
+  width: 76px;
+  height: 76px;
+  object-fit: contain;
+  display: block;
+  margin: 0 auto 0.4rem;
+}
+
+h1 {
+  margin: 0;
+  color: #1f3a56;
+  text-align: center;
+}
+
+.form-error {
+  margin: 0.35rem 0 0;
+  color: #b53737;
+  font-size: 0.9rem;
+}
+
+.links {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+}

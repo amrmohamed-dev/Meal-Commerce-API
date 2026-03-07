@@ -1,0 +1,46 @@
+<ng-container *ngIf="categoriesState$ | async as categoriesState">
+  <section class="heading card-surface">
+    <div>
+      <h1>Meals</h1>
+      <p class="muted">
+        Filter by category and choose the perfect meal for your next order.
+      </p>
+    </div>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Category</mat-label>
+      <mat-select
+        [value]="selectedCategory$ | async"
+        [disabled]="categoriesState.loading"
+        (valueChange)="onCategoryChange($event)"
+      >
+        <mat-option value="">All categories</mat-option>
+        <mat-option *ngFor="let category of categoriesState.data" [value]="category._id">
+          {{ category.name | titlecase }}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+  </section>
+</ng-container>
+
+<ng-container *ngIf="mealsState$ | async as mealsState">
+  <div *ngIf="mealsState.loading" class="loading-wrap">
+    <mat-spinner diameter="42"></mat-spinner>
+  </div>
+
+  <section *ngIf="!mealsState.loading && mealsState.data.length === 0" class="card-surface empty">
+    <img
+      class="empty-logo"
+      src="https://res.cloudinary.com/dudarfssg/image/upload/v1772379053/meal-commerce_logo-removebg-preview_1_1_xly0hu.png"
+      alt="Meal Commerce logo"
+    />
+    <mat-icon>restaurant_menu</mat-icon>
+    <h2>No meals found</h2>
+    <p class="muted">Try another category or clear the filter to view all meals.</p>
+    <a mat-flat-button class="brand-btn" [routerLink]="['/meals']">Show All Meals</a>
+  </section>
+
+  <section class="grid-auto mt-2" *ngIf="!mealsState.loading && mealsState.data.length > 0">
+    <app-meal-card *ngFor="let meal of mealsState.data" [meal]="meal"></app-meal-card>
+  </section>
+</ng-container>

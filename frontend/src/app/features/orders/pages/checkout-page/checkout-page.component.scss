@@ -1,0 +1,50 @@
+.checkout-grid {
+  margin-top: 1rem;
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 1rem;
+}
+
+.details,
+.summary {
+  padding: 1rem;
+}
+
+h1 {
+  margin: 0;
+  color: #1f3a56;
+}
+
+h2 {
+  margin-top: 0;
+  color: #1f3a56;
+}
+
+.form-error {
+  margin: 0.4rem 0 0;
+  color: #b53737;
+  font-size: 0.9rem;
+}
+
+.line {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.6rem;
+  padding: 0.5rem 0;
+}
+
+.total {
+  color: #1f3a56;
+}
+
+.loading-wrap {
+  min-height: 320px;
+  display: grid;
+  place-items: center;
+}
+
+@media (max-width: 920px) {
+  .checkout-grid {
+    grid-template-columns: 1fr;
+  }
+}

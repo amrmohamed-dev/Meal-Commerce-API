@@ -1,0 +1,205 @@
+<ng-container *ngIf="mealState$ | async as mealState">
+  <div *ngIf="mealState.loading" class="loading-wrap">
+    <mat-spinner diameter="42"></mat-spinner>
+  </div>
+
+  <section class="details card-surface" *ngIf="!mealState.loading && mealState.data as currentMeal">
+    <div class="image-wrap">
+      <img
+        [src]="currentMeal.image.url || 'https://placehold.co/1200x700?text=Meal'"
+        [alt]="currentMeal.name"
+      />
+    </div>
+
+    <div class="content">
+      <header class="content-header">
+        <h1>{{ currentMeal.name | titlecase }}</h1>
+        <p class="muted description">{{ currentMeal.description }}</p>
+      </header>
+
+      <div class="meta">
+        <div class="meta-item">
+          <span class="meta-label">Price</span>
+          <strong>{{ currentMeal.price | currency: 'USD' : 'symbol' : '1.0-0' }}</strong>
+        </div>
+        <div class="meta-item">
+          <span class="meta-label">Prep Time</span>
+          <strong>{{ currentMeal.preparationTime }} mins</strong>
+        </div>
+        <div class="meta-item">
+          <span class="meta-label">Rating Average</span>
+          <strong>{{ (currentMeal.ratingAverage ?? 0) | number: '1.1-1' }} / 5</strong>
+        </div>
+        <div class="meta-item">
+          <span class="meta-label">Rating Count</span>
+          <strong>{{ currentMeal.ratingQuantity ?? 0 }}</strong>
+        </div>
+      </div>
+
+      <div class="actions">
+        <mat-form-field appearance="outline" class="qty-field">
+          <mat-label>Quantity</mat-label>
+          <input matInput type="number" min="1" [(ngModel)]="quantity" />
+        </mat-form-field>
+
+        <button mat-flat-button class="brand-btn" (click)="addToCart(currentMeal)" [disabled]="busy">
+          Add to Cart
+        </button>
+        <button
+          mat-stroked-button
+          class="outlined-btn"
+          (click)="toggleFavourite(currentMeal)"
+          [disabled]="busy"
+        >
+          {{ (isFavourite$ | async) ? 'Unfavourite' : 'Favourite' }}
+        </button>
+        <button mat-button class="review-btn" type="button" (click)="toggleReviewForm()">
+          Write Review
+        </button>
+      </div>
+
+      <section *ngIf="showReviewForm" class="review-form card-surface">
+        <h2>Add Review</h2>
+        <p class="muted">Share your feedback to help other customers choose better.</p>
+
+        <div class="rating-picker" aria-label="Choose rating">
+          <button
+            *ngFor="let star of [1, 2, 3, 4, 5]"
+            type="button"
+            mat-icon-button
+            class="star-btn"
+            [class.active]="reviewRating >= star"
+            (click)="reviewRating = star"
+          >
+            <mat-icon>{{ reviewRating >= star ? 'star' : 'star_border' }}</mat-icon>
+          </button>
+          <span class="rating-value">{{ reviewRating }}/5</span>
+        </div>
+
+        <mat-form-field appearance="outline" class="comment-field">
+          <mat-label>Comment</mat-label>
+          <textarea matInput rows="4" [(ngModel)]="reviewComment"></textarea>
+        </mat-form-field>
+
+        <button mat-flat-button class="brand-btn" (click)="submitReview(currentMeal)" [disabled]="busy">
+          Submit Review
+        </button>
+      </section>
+
+      <section class="reviews-list" *ngIf="reviews$ | async as reviews">
+        <div class="reviews-heading">
+          <h2>Reviews</h2>
+          <span class="reviews-count">{{ reviews.length }}</span>
+        </div>
+
+        <div *ngIf="reviews.length === 0" class="empty-reviews card-surface muted">
+          No reviews yet.
+        </div>
+
+        <article *ngFor="let review of reviews" class="review-card card-surface">
+
+          <div class="review-header">
+
+            <img
+              class="review-avatar"
+              [src]="getReviewUserImage(review)"
+              [alt]="getReviewUserName(review)"
+            />
+
+            <div class="review-user">
+              <strong>{{ getReviewUserName(review) }}</strong>
+              <span class="muted review-date">
+                {{ review.createdAt | date: 'medium' }}
+              </span>
+            </div>
+
+          </div>
+
+          <div class="review-stars" [attr.aria-label]="'Rating ' + review.rating + ' out of 5'">
+            <mat-icon
+              *ngFor="let star of [1,2,3,4,5]"
+              class="review-star"
+              [class.filled]="review.rating >= star"
+            >
+              {{ review.rating >= star ? 'star' : 'star_border' }}
+            </mat-icon>
+          </div>
+
+          <p class="review-comment">
+            {{ review.comment }}
+          </p>
+          <div class="actions" *ngIf="canUpdateReview(review) || canDeleteReview(review)">
+            <button
+              mat-button
+              type="button"
+              *ngIf="canUpdateReview(review)"
+              (click)="startReviewEdit(review)"
+              [disabled]="busy"
+            >
+              Update
+            </button>
+            <button
+              mat-button
+              color="warn"
+              type="button"
+              *ngIf="canDeleteReview(review)"
+              (click)="deleteReview(review._id)"
+              [disabled]="busy"
+            >
+              Delete
+            </button>
+          </div>
+
+          <section class="review-edit-form" *ngIf="editingReviewId === review._id">
+            <div class="rating-picker" aria-label="Update rating">
+              <button
+                *ngFor="let star of [1, 2, 3, 4, 5]"
+                type="button"
+                mat-icon-button
+                class="star-btn"
+                [class.active]="editingReviewRating >= star"
+                (click)="editingReviewRating = star"
+              >
+                <mat-icon>{{ editingReviewRating >= star ? 'star' : 'star_border' }}</mat-icon>
+              </button>
+              <span class="rating-value">{{ editingReviewRating }}/5</span>
+            </div>
+
+            <mat-form-field appearance="outline" class="comment-field">
+              <mat-label>Comment</mat-label>
+              <textarea matInput rows="3" [(ngModel)]="editingReviewComment"></textarea>
+            </mat-form-field>
+
+            <div class="actions">
+              <button
+                mat-flat-button
+                class="brand-btn"
+                type="button"
+                (click)="updateReview(review._id)"
+                [disabled]="busy"
+              >
+                Save
+              </button>
+              <button
+                mat-stroked-button
+                class="outlined-btn"
+                type="button"
+                (click)="cancelReviewEdit()"
+                [disabled]="busy"
+              >
+                Cancel
+              </button>
+            </div>
+          </section>
+
+        </article>
+      </section>
+    </div>
+  </section>
+
+  <section class="card-surface empty-state" *ngIf="!mealState.loading && !mealState.data">
+    <mat-icon>error_outline</mat-icon>
+    <p class="muted">Meal details are unavailable right now.</p>
+    <a mat-flat-button class="brand-btn" routerLink="/meals">Back to meals</a>
+  </section>
+</ng-container>

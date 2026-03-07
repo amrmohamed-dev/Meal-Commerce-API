@@ -1,0 +1,9 @@
+.main-shell {
+  min-height: calc(100vh - 128px);
+}
+
+.loading-overlay {
+  min-height: 320px;
+  display: grid;
+  place-items: center;
+}

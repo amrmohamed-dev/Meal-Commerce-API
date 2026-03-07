@@ -1,0 +1,67 @@
+<ng-container *ngIf="cartState$ | async as cartState">
+  <section class="checkout-grid" *ngIf="!cartState.loading; else loadingTpl">
+    <mat-card class="card-surface details">
+      <h1>Checkout</h1>
+      <p class="muted">Provide shipping details to place your order.</p>
+      <p class="form-error" *ngIf="formError">{{ formError }}</p>
+
+      <form class="form-grid mt-2" [formGroup]="form" (ngSubmit)="submit()">
+        <mat-form-field appearance="outline">
+          <mat-label>Street</mat-label>
+          <input matInput formControlName="street" />
+          <mat-error *ngIf="street.touched && street.hasError('required')">
+            Street is required.
+          </mat-error>
+          <mat-error *ngIf="street.touched && street.hasError('minlength')">
+            Street must be at least 3 characters.
+          </mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>City</mat-label>
+          <input matInput formControlName="city" />
+          <mat-error *ngIf="city.touched && city.hasError('required')">
+            City is required.
+          </mat-error>
+          <mat-error *ngIf="city.touched && city.hasError('minlength')">
+            City must be at least 2 characters.
+          </mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Phone</mat-label>
+          <input matInput formControlName="phone" />
+          <mat-error *ngIf="phone.touched && phone.hasError('required')">
+            Phone is required.
+          </mat-error>
+          <mat-error *ngIf="phone.touched && phone.hasError('minlength')">
+            Phone must be at least 6 characters.
+          </mat-error>
+        </mat-form-field>
+
+        <button mat-flat-button class="brand-btn w-full" [disabled]="placing">
+          {{ placing ? 'Placing order...' : 'Place Order' }}
+        </button>
+      </form>
+    </mat-card>
+
+    <mat-card class="card-surface summary">
+      <h2>Order Summary</h2>
+      <article class="line" *ngFor="let item of cartState.data.cartItems">
+        <span>{{ item.meal.name | titlecase }} x{{ item.quantity }}</span>
+        <span>{{ item.quantity * item.price | currency: 'USD' : 'symbol' : '1.0-0' }}</span>
+      </article>
+      <mat-divider></mat-divider>
+      <div class="line total">
+        <strong>Total</strong>
+        <strong>{{ cartState.data.totalPrice | currency: 'USD' : 'symbol' : '1.0-0' }}</strong>
+      </div>
+    </mat-card>
+  </section>
+</ng-container>
+
+<ng-template #loadingTpl>
+  <div class="loading-wrap">
+    <mat-spinner diameter="42"></mat-spinner>
+  </div>
+</ng-template>

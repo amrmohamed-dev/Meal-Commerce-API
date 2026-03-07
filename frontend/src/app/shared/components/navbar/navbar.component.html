@@ -1,0 +1,178 @@
+<input #mobileMenuToggle type="checkbox" class="mobile-menu-toggle" aria-hidden="true" />
+
+<mat-toolbar class="toolbar">
+  <div class="toolbar-inner page-container">
+    <a class="brand" routerLink="/" (click)="mobileMenuToggle.checked = false">
+      <img
+        class="brand-logo"
+        src="https://res.cloudinary.com/dudarfssg/image/upload/v1772379053/meal-commerce_logo-removebg-preview_1_1_xly0hu.png"
+        alt="Meal Commerce logo"
+      />
+      <span class="brand-text">Meal Commerce</span>
+    </a>
+
+    <nav class="nav-desktop">
+      <a mat-button routerLink="/meals" routerLinkActive="active-link">
+        <i class="fa-solid fa-utensils nav-icon" aria-hidden="true"></i>
+        Meals
+      </a>
+      <a mat-button routerLink="/cart" routerLinkActive="active-link">
+        <i class="fa-solid fa-cart-shopping nav-icon" aria-hidden="true"></i>
+        Cart
+        <ng-container *ngIf="cartItemCount$ | async as cartItemCount">
+          <span class="cart-badge" *ngIf="cartItemCount > 0">{{ cartItemCount }}</span>
+        </ng-container>
+      </a>
+      <a mat-button routerLink="/orders/my-orders" routerLinkActive="active-link">
+        <i class="fa-solid fa-box nav-icon" aria-hidden="true"></i>
+        Orders
+      </a>
+      <a mat-button routerLink="/favourites" routerLinkActive="active-link">
+        <i class="fa-regular fa-star nav-icon" aria-hidden="true"></i>
+        Favourites
+      </a>
+      <a
+        *ngIf="(currentUser$ | async)?.role === 'admin'"
+        mat-button
+        routerLink="/admin"
+        routerLinkActive="active-link"
+      >
+        <i class="fa-solid fa-gauge-high nav-icon" aria-hidden="true"></i>
+        Admin
+      </a>
+    </nav>
+
+    <div class="auth-actions">
+      <ng-container *ngIf="currentUser$ | async as user; else guestActions">
+        <button mat-button [matMenuTriggerFor]="userMenu">{{ user.name }}</button>
+        <mat-menu #userMenu="matMenu">
+          <button mat-menu-item routerLink="/profile">
+            <i class="fa-regular fa-user nav-icon" aria-hidden="true"></i>
+            Profile
+          </button>
+          <button mat-menu-item routerLink="/orders/my-orders">
+            <i class="fa-solid fa-box nav-icon" aria-hidden="true"></i>
+            Orders
+          </button>
+          <button mat-menu-item (click)="onLogout()">
+            <i class="fa-solid fa-right-from-bracket nav-icon" aria-hidden="true"></i>
+            Logout
+          </button>
+        </mat-menu>
+      </ng-container>
+
+      <ng-template #guestActions>
+        <a mat-button class="login-link" routerLink="/auth/login">Login</a>
+        <a mat-flat-button class="brand-btn" routerLink="/auth/register">Register</a>
+      </ng-template>
+    </div>
+
+    <div class="mobile-actions">
+      <a
+        mat-icon-button
+        class="mobile-cart-btn"
+        routerLink="/cart"
+        (click)="mobileMenuToggle.checked = false"
+        aria-label="Open cart"
+      >
+        <i class="fa-solid fa-cart-shopping nav-icon" aria-hidden="true"></i>
+        <ng-container *ngIf="cartItemCount$ | async as cartItemCount">
+          <span class="cart-badge mobile-badge" *ngIf="cartItemCount > 0">
+            {{ cartItemCount }}
+          </span>
+        </ng-container>
+      </a>
+
+      <button
+        mat-icon-button
+        type="button"
+        class="menu-toggle"
+        aria-label="Open navigation menu"
+        (click)="mobileMenuToggle.checked = true"
+      >
+        <mat-icon>menu</mat-icon>
+      </button>
+    </div>
+  </div>
+</mat-toolbar>
+
+<button
+  class="mobile-backdrop"
+  type="button"
+  [class.open]="mobileMenuToggle.checked"
+  (click)="mobileMenuToggle.checked = false"
+  aria-label="Close navigation menu"
+></button>
+
+<aside class="mobile-drawer" [class.open]="mobileMenuToggle.checked" aria-label="Mobile navigation">
+  <div class="mobile-drawer-header">
+    <span class="mobile-title">Navigation</span>
+    <button
+      mat-icon-button
+      type="button"
+      aria-label="Close menu"
+      (click)="mobileMenuToggle.checked = false"
+    >
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <nav class="mobile-nav-links">
+    <a routerLink="/meals" routerLinkActive="active-link" (click)="mobileMenuToggle.checked = false">
+      <i class="fa-solid fa-utensils nav-icon" aria-hidden="true"></i>
+      Meals
+    </a>
+    <a routerLink="/cart" routerLinkActive="active-link" (click)="mobileMenuToggle.checked = false">
+      <i class="fa-solid fa-cart-shopping nav-icon" aria-hidden="true"></i>
+      Cart
+      <ng-container *ngIf="cartItemCount$ | async as cartItemCount">
+        <span class="cart-badge" *ngIf="cartItemCount > 0">{{ cartItemCount }}</span>
+      </ng-container>
+    </a>
+    <a routerLink="/orders/my-orders" routerLinkActive="active-link" (click)="mobileMenuToggle.checked = false">
+      <i class="fa-solid fa-box nav-icon" aria-hidden="true"></i>
+      Orders
+    </a>
+    <a routerLink="/favourites" routerLinkActive="active-link" (click)="mobileMenuToggle.checked = false">
+      <i class="fa-regular fa-star nav-icon" aria-hidden="true"></i>
+      Favourites
+    </a>
+    <a
+      *ngIf="(currentUser$ | async)?.role === 'admin'"
+      routerLink="/admin"
+      routerLinkActive="active-link"
+      (click)="mobileMenuToggle.checked = false"
+    >
+      <i class="fa-solid fa-gauge-high nav-icon" aria-hidden="true"></i>
+      Admin
+    </a>
+  </nav>
+
+  <div class="mobile-auth">
+    <ng-container *ngIf="currentUser$ | async as user; else mobileGuestActions">
+      <p class="mobile-user">{{ user.name }}</p>
+      <a routerLink="/profile" (click)="mobileMenuToggle.checked = false">
+        <i class="fa-regular fa-user nav-icon" aria-hidden="true"></i>
+        Profile
+      </a>
+      <button
+        mat-flat-button
+        class="brand-btn"
+        type="button"
+        (click)="onLogout(); mobileMenuToggle.checked = false"
+      >
+        Logout
+      </button>
+    </ng-container>
+
+    <ng-template #mobileGuestActions>
+      <a routerLink="/auth/login" (click)="mobileMenuToggle.checked = false">
+        <i class="fa-solid fa-right-to-bracket nav-icon" aria-hidden="true"></i>
+        Login
+      </a>
+      <a mat-flat-button class="brand-btn" routerLink="/auth/register" (click)="mobileMenuToggle.checked = false">
+        Register
+      </a>
+    </ng-template>
+  </div>
+</aside>

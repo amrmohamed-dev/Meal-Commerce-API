@@ -1,0 +1,41 @@
+.page {
+  margin-top: 1rem;
+  padding: 1rem;
+}
+
+h1 {
+  margin: 0;
+  color: #1f3a56;
+}
+
+.loading-wrap {
+  min-height: 200px;
+  display: grid;
+  place-items: center;
+}
+
+.empty-state {
+  min-height: 240px;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  gap: 0.35rem;
+}
+
+.empty-logo {
+  width: 72px;
+  height: 72px;
+  object-fit: contain;
+}
+
+.empty-state mat-icon {
+  color: var(--color-primary);
+  width: 2rem;
+  height: 2rem;
+  font-size: 2rem;
+}
+
+.empty-state h2 {
+  margin: 0;
+  color: var(--color-secondary);
+}

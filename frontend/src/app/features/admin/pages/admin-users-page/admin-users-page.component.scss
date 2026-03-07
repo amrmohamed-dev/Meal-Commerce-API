@@ -1,0 +1,31 @@
+.page {
+  margin-top: 1rem;
+}
+
+.panel {
+  padding: 1rem;
+}
+
+h1,
+h2 {
+  margin: 0;
+  color: #1f3a56;
+}
+
+.loading-wrap {
+  min-height: 180px;
+  display: grid;
+  place-items: center;
+}
+
+.simple-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.simple-table th,
+.simple-table td {
+  text-align: left;
+  padding: 0.55rem;
+  border-bottom: 1px solid rgba(31, 58, 86, 0.1);
+}

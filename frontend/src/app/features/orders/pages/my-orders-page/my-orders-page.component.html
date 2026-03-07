@@ -1,0 +1,35 @@
+﻿<ng-container *ngIf="ordersState$ | async as ordersState">
+  <section class="card-surface orders-wrap">
+    <h1>My Orders</h1>
+
+    <div *ngIf="ordersState.loading" class="loading-wrap">
+      <mat-spinner diameter="40"></mat-spinner>
+    </div>
+
+    <div *ngIf="!ordersState.loading && ordersState.data.length === 0" class="empty-state">
+      <img
+        class="empty-logo"
+        src="https://res.cloudinary.com/dudarfssg/image/upload/v1772379053/meal-commerce_logo-removebg-preview_1_1_xly0hu.png"
+        alt="Meal Commerce logo"
+      />
+      <mat-icon>inventory_2</mat-icon>
+      <h2>No orders yet</h2>
+      <p class="muted">Start your first order from our meals collection.</p>
+      <a mat-flat-button class="brand-btn" routerLink="/meals">Browse Meals</a>
+    </div>
+
+    <div class="orders-list" *ngIf="!ordersState.loading && ordersState.data.length > 0">
+      <a class="order-card" *ngFor="let order of ordersState.data" [routerLink]="['/orders', order._id]">
+        <div class="top">
+          <h3>#{{ order._id.slice(-6).toUpperCase() }}</h3>
+          <span class="status">{{ order.status | titlecase }}</span>
+        </div>
+        <p class="muted">{{ order.createdAt | date: 'medium' }}</p>
+        <p>
+          {{ order.totalPrice | currency: 'USD' : 'symbol' : '1.0-0' }} •
+          {{ order.cartItems.length }} items
+        </p>
+      </a>
+    </div>
+  </section>
+</ng-container>

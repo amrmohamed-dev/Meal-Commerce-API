@@ -1,0 +1,57 @@
+<mat-card class="meal-card">
+  <div class="media-wrap">
+    <img
+      [src]="meal.image.url || 'https://placehold.co/800x500?text=Meal'"
+      [alt]="meal.name"
+      loading="lazy"
+    />
+    <button
+      class="fav-fab"
+      [class.active]="(isFavourite$ | async) === true"
+      type="button"
+      mat-icon-button
+      (click)="toggleFavourite()"
+      [disabled]="busy"
+      aria-label="Toggle favourite"
+    >
+      <i
+        [class]="(isFavourite$ | async) ? 'fa-solid fa-star action-icon' : 'fa-regular fa-star action-icon'"
+        aria-hidden="true"
+      ></i>
+    </button>
+  </div>
+
+  <div class="content-wrap">
+    <mat-card-content class="content">
+      <h3 class="title">{{ meal.name | titlecase }}</h3>
+      <p class="description muted">
+      {{ meal.description | slice: 0 : 96 }}{{ meal.description.length > 96 ? '...' : '' }}
+      </p>
+
+      <div class="meta">
+        <span class="price">{{ meal.price | currency: 'USD' : 'symbol' : '1.0-0' }}</span>
+        <div class="meta-right">
+          <span class="prep-time muted">
+            <i class="fa-regular fa-clock action-icon" aria-hidden="true"></i>
+            {{ meal.preparationTime }} mins
+          </span>
+          <span class="rating muted">
+            <i class="fa-solid fa-star action-icon" aria-hidden="true"></i>
+            {{ (meal.ratingAverage ?? 0) | number: '1.1-1' }}
+          </span>
+        </div>
+      </div>
+    </mat-card-content>
+
+    <mat-card-actions class="actions">
+      <a mat-stroked-button class="outlined-btn details-btn" [routerLink]="['/meals', meal._id]">
+        <i class="fa-solid fa-circle-info action-icon" aria-hidden="true"></i>
+        Details
+      </a>
+      <button mat-flat-button class="brand-btn add-btn" (click)="addToCart()" [disabled]="busy">
+        <i class="fa-solid fa-cart-shopping action-icon" aria-hidden="true"></i>
+        Add to Cart
+      </button>
+    </mat-card-actions>
+  </div>
+</mat-card>

@@ -1,0 +1,26 @@
+<ng-container *ngIf="mealsState$ | async as mealsState">
+  <section class="page card-surface">
+    <h1>Favourite Meals</h1>
+    <p class="muted">Meals you saved for quick ordering.</p>
+
+    <div *ngIf="mealsState.loading" class="loading-wrap">
+      <mat-spinner diameter="40"></mat-spinner>
+    </div>
+
+    <div *ngIf="!mealsState.loading && mealsState.data.length === 0" class="empty-state">
+      <img
+        class="empty-logo"
+        src="https://res.cloudinary.com/dudarfssg/image/upload/v1772379053/meal-commerce_logo-removebg-preview_1_1_xly0hu.png"
+        alt="Meal Commerce logo"
+      />
+      <mat-icon>star_border</mat-icon>
+      <h2>No favourites yet</h2>
+      <p class="muted">Tap the star icon on any meal to save it here.</p>
+      <a mat-flat-button class="brand-btn" routerLink="/meals">Find Meals</a>
+    </div>
+
+    <div class="grid-auto mt-2" *ngIf="!mealsState.loading && mealsState.data.length > 0">
+      <app-meal-card *ngFor="let meal of mealsState.data" [meal]="meal"></app-meal-card>
+    </div>
+  </section>
+</ng-container>

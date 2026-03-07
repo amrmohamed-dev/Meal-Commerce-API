@@ -1,0 +1,49 @@
+<section class="page card-surface">
+  <div class="header">
+    <h1>Reviews</h1>
+  </div>
+
+  <p class="muted">
+    View all users reviews and jump directly to the reviewed meal.
+  </p>
+
+  <div *ngIf="loading" class="loading-wrap">
+    <mat-spinner diameter="40"></mat-spinner>
+  </div>
+
+  <div *ngIf="!loading && reviews.length === 0" class="muted">No reviews found.</div>
+
+  <div class="review-list" *ngIf="!loading && reviews.length > 0">
+    <article class="review-card" *ngFor="let review of reviews">
+      <div class="top">
+        <div class="user-info">
+          <img
+            class="avatar"
+            [src]="getReviewUserImage(review)"
+            [alt]="getReviewUserName(review)"
+          />
+          <span class="username">{{ getReviewUserName(review) }}</span>
+        </div>
+
+        <ng-container *ngIf="getReviewMealId(review) as mealId; else mealWithoutLink">
+          <a class="meal-link" [routerLink]="['/meals', mealId]">
+            {{ getReviewMealName(review) }}
+          </a>
+        </ng-container>
+        <ng-template #mealWithoutLink>
+          <span class="meal-name">{{ getReviewMealName(review) }}</span>
+        </ng-template>
+
+        <strong>Rating: {{ review.rating }}/5</strong>
+
+        <span class="muted">{{ review.createdAt | date: 'short' }}</span>
+      </div>
+      <p>{{ review.comment }}</p>
+      <div class="actions">
+        <button mat-button color="warn" (click)="deleteReview(review._id)" [disabled]="busy">
+          Delete
+        </button>
+      </div>
+    </article>
+  </div>
+</section>
