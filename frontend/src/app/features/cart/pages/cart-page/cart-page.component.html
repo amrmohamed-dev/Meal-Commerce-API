@@ -1,0 +1,64 @@
+<ng-container *ngIf="cartState$ | async as cartState">
+  <section class="card-surface cart-wrap">
+    <div class="cart-header">
+      <h1>Your Cart</h1>
+      <button
+        mat-stroked-button
+        class="outlined-btn"
+        (click)="clearCart()"
+        [disabled]="busy || cartState.data.cartItems.length === 0"
+      >
+        Clear Cart
+      </button>
+    </div>
+
+    <div *ngIf="cartState.loading" class="loading-wrap">
+      <mat-spinner diameter="40"></mat-spinner>
+    </div>
+
+    <div *ngIf="!cartState.loading && cartState.data.cartItems.length === 0" class="empty">
+      <img
+        class="empty-logo"
+        src="https://res.cloudinary.com/dudarfssg/image/upload/v1772379053/meal-commerce_logo-removebg-preview_1_1_xly0hu.png"
+        alt="Meal Commerce logo"
+      />
+      <mat-icon>shopping_cart</mat-icon>
+      <h2>Your cart is empty</h2>
+      <p class="muted">Add delicious meals to start your order.</p>
+      <a mat-flat-button class="brand-btn" routerLink="/meals">Browse Meals</a>
+    </div>
+
+    <div *ngIf="!cartState.loading && cartState.data.cartItems.length > 0" class="items">
+      <article class="item" *ngFor="let item of cartState.data.cartItems">
+        <img [src]="item.meal.image.url || 'https://placehold.co/180x120?text=Meal'" [alt]="item.meal.name" />
+
+        <div>
+          <h3>{{ item.meal.name | titlecase }}</h3>
+          <p class="muted">{{ item.price | currency: 'USD' : 'symbol' : '1.0-0' }} each</p>
+        </div>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Qty</mat-label>
+          <input
+            matInput
+            type="number"
+            min="1"
+            [value]="item.quantity"
+            (change)="updateQuantity(item.meal._id, $any($event.target).value)"
+          />
+        </mat-form-field>
+
+        <button mat-icon-button color="warn" (click)="removeItem(item.meal._id)" [disabled]="busy">
+          <mat-icon>delete</mat-icon>
+        </button>
+      </article>
+
+      <mat-divider></mat-divider>
+
+      <div class="summary">
+        <h2>Total: {{ cartState.data.totalPrice | currency: 'USD' : 'symbol' : '1.0-0' }}</h2>
+        <button mat-flat-button class="brand-btn" (click)="checkout()">Proceed to Checkout</button>
+      </div>
+    </div>
+  </section>
+</ng-container>

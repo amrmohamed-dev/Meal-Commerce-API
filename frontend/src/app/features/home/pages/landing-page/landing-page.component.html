@@ -1,0 +1,62 @@
+<section class="hero card-surface">
+  <div>
+    <img
+      class="hero-logo"
+      src="https://res.cloudinary.com/dudarfssg/image/upload/v1772379053/meal-commerce_logo-removebg-preview_1_1_xly0hu.png"
+      alt="Meal Commerce logo"
+    />
+    <p class="hero-tag">Fresh Meals, Fast Delivery</p>
+    <h1>Order your favorite food in minutes.</h1>
+    <p class="muted">
+      Discover curated meals, track orders, and manage your cart in one place.
+    </p>
+    <div class="hero-actions">
+      <a mat-flat-button class="brand-btn" routerLink="/meals">Start Ordering</a>
+      <a mat-button class="outlined-btn" routerLink="/orders/my-orders">Track Orders</a>
+    </div>
+  </div>
+  <div class="hero-highlight">
+    <div class="stat">
+      <h3>30+</h3>
+      <p class="muted">Daily meals</p>
+    </div>
+    <div class="stat">
+      <h3>25 min</h3>
+      <p class="muted">Avg. delivery</p>
+    </div>
+    <div class="stat">
+      <h3>4.8</h3>
+      <p class="muted">Customer rating</p>
+    </div>
+  </div>
+</section>
+
+<section class="mt-3">
+  <h2 class="section-title">Browse by Category</h2>
+  <div class="category-row">
+    <a
+      class="category-chip"
+      *ngFor="let category of (categories$ | async) ?? []"
+      [routerLink]="['/meals']"
+      [queryParams]="{ categoryId: category._id }"
+    >
+      {{ category.name | titlecase }}
+    </a>
+  </div>
+</section>
+
+<ng-container *ngIf="featuredMealsState$ | async as featuredMealsState">
+  <section class="mt-3">
+    <h2 class="section-title">Featured Meals</h2>
+    <div *ngIf="featuredMealsState.loading" class="loading-wrap">
+      <mat-spinner diameter="42"></mat-spinner>
+    </div>
+    <div class="grid-auto" *ngIf="!featuredMealsState.loading && featuredMealsState.data.length > 0">
+      <app-meal-card *ngFor="let meal of featuredMealsState.data" [meal]="meal"></app-meal-card>
+    </div>
+    <div class="card-surface empty-state" *ngIf="!featuredMealsState.loading && featuredMealsState.data.length === 0">
+      <mat-icon>restaurant_menu</mat-icon>
+      <p class="muted">No featured meals yet. Check back soon.</p>
+    </div>
+  </section>
+</ng-container>

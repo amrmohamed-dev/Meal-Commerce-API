@@ -1,0 +1,62 @@
+<section class="page">
+  <mat-card class="card-surface panel">
+    <h1>Manage Users</h1>
+    <form class="form-grid mt-2" [formGroup]="form" (ngSubmit)="createUser()">
+      <mat-form-field appearance="outline">
+        <mat-label>Name</mat-label>
+        <input matInput formControlName="name" />
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>Email</mat-label>
+        <input matInput formControlName="email" type="email" />
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>Password</mat-label>
+        <input matInput formControlName="password" type="password" />
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>Role</mat-label>
+        <mat-select formControlName="role">
+          <mat-option value="user">User</mat-option>
+          <mat-option value="admin">Admin</mat-option>
+        </mat-select>
+      </mat-form-field>
+      <button mat-flat-button class="brand-btn" [disabled]="busy">
+        {{ busy ? 'Creating...' : 'Create User' }}
+      </button>
+    </form>
+  </mat-card>
+
+  <mat-card class="card-surface panel mt-2">
+    <h2>Users</h2>
+    <div *ngIf="loading" class="loading-wrap"><mat-spinner diameter="36"></mat-spinner></div>
+
+    <div *ngIf="!loading" class="table-wrap">
+      <table class="simple-table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Role</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let user of users">
+            <td>{{ user.name }}</td>
+            <td>{{ user.email }}</td>
+            <td>
+              <mat-select [value]="user.role" (valueChange)="changeRole(user, $event)">
+                <mat-option value="user">User</mat-option>
+                <mat-option value="admin">Admin</mat-option>
+              </mat-select>
+            </td>
+            <td>
+              <button mat-button color="warn" (click)="deleteUser(user._id)">Delete</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </mat-card>
+</section>

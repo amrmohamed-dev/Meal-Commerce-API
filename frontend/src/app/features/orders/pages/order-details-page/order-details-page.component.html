@@ -1,0 +1,48 @@
+<ng-container *ngIf="orderState$ | async as orderState">
+  <div *ngIf="orderState.loading" class="loading-wrap">
+    <mat-spinner diameter="42"></mat-spinner>
+  </div>
+
+  <section class="card-surface details" *ngIf="!orderState.loading && orderState.data as currentOrder">
+    <div class="header">
+      <div>
+        <h1>Order #{{ currentOrder._id.slice(-8).toUpperCase() }}</h1>
+        <p class="muted">{{ currentOrder.createdAt | date: 'medium' }}</p>
+      </div>
+      <div class="status">{{ currentOrder.status | titlecase }}</div>
+    </div>
+
+    <h3>Items</h3>
+    <article class="item" *ngFor="let item of currentOrder.cartItems">
+      <span>{{ item.meal.name | titlecase }} x{{ item.quantity }}</span>
+      <span>{{ item.quantity * item.price | currency: 'USD' : 'symbol' : '1.0-0' }}</span>
+    </article>
+
+    <mat-divider></mat-divider>
+
+    <div class="address">
+      <h3>Shipping Address</h3>
+      <p>{{ currentOrder.shippingAddress.street }}, {{ currentOrder.shippingAddress.city }}</p>
+      <p class="muted">{{ currentOrder.shippingAddress.phone }}</p>
+    </div>
+
+    <div class="footer">
+      <h2>Total: {{ currentOrder.totalPrice | currency: 'USD' : 'symbol' : '1.0-0' }}</h2>
+      <button
+        *ngIf="canCancel(currentOrder.status)"
+        mat-stroked-button
+        color="warn"
+        (click)="cancelOrder(currentOrder._id)"
+        [disabled]="busy"
+      >
+        Cancel Order
+      </button>
+    </div>
+  </section>
+
+  <section class="card-surface empty-state" *ngIf="!orderState.loading && !orderState.data">
+    <mat-icon>receipt_long</mat-icon>
+    <p class="muted">Order details are unavailable right now.</p>
+    <a mat-flat-button class="brand-btn" routerLink="/orders/my-orders">Back to orders</a>
+  </section>
+</ng-container>

@@ -1,0 +1,35 @@
+<section class="page card-surface">
+  <h1>Manage Orders</h1>
+  <ng-container *ngIf="loading$ | async as loading">
+    <div *ngIf="loading" class="loading-wrap"><mat-spinner diameter="36"></mat-spinner></div>
+
+    <div class="table-wrap" *ngIf="!loading">
+      <table class="simple-table">
+        <thead>
+          <tr>
+            <th>Order</th>
+            <th>User</th>
+            <th>Total</th>
+            <th>Status</th>
+            <th>Created</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let order of (orders$ | async) ?? []">
+            <td>#{{ order._id.slice(-6).toUpperCase() }}</td>
+            <td>{{ $any(order.user).name || 'N/A' }}</td>
+            <td>{{ order.totalPrice | currency: 'USD' : 'symbol' : '1.0-0' }}</td>
+            <td>
+              <mat-select [value]="order.status" (valueChange)="updateStatus(order._id, $event)">
+                <mat-option *ngFor="let status of statuses" [value]="status">
+                  {{ status | titlecase }}
+                </mat-option>
+              </mat-select>
+            </td>
+            <td>{{ order.createdAt | date: 'short' }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </ng-container>
+</section>

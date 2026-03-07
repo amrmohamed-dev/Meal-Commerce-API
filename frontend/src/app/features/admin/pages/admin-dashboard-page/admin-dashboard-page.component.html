@@ -1,0 +1,32 @@
+<section class="dashboard">
+  <h1>Admin Dashboard</h1>
+  <p class="muted">Manage platform entities and monitor order activity.</p>
+
+  <div class="quick-links">
+    <a class="card-surface quick" routerLink="/admin/users">Manage Users</a>
+    <a class="card-surface quick" routerLink="/admin/reviews">Manage Reviews</a>
+    <a class="card-surface quick" routerLink="/admin/meals">Manage Meals</a>
+    <a class="card-surface quick" routerLink="/admin/categories">Manage Categories</a>
+    <a class="card-surface quick" routerLink="/admin/orders">Manage Orders</a>
+    <a class="card-surface quick" routerLink="/admin/stats">Order Analytics</a>
+  </div>
+
+  <div *ngIf="loading" class="loading-wrap">
+    <mat-spinner diameter="40"></mat-spinner>
+  </div>
+
+  <div class="stats-grid" *ngIf="!loading">
+    <article class="card-surface stat">
+      <h3>{{ totalOrders }}</h3>
+      <p class="muted">Total Orders</p>
+    </article>
+    <article class="card-surface stat">
+      <h3>{{ totalRevenue | currency: 'USD' : 'symbol' : '1.0-0' }}</h3>
+      <p class="muted">Total Revenue</p>
+    </article>
+    <article class="card-surface stat" *ngFor="let item of stats">
+      <h3>{{ item.nOrders }}</h3>
+      <p class="muted">{{ item._id | titlecase }}</p>
+    </article>
+  </div>
+</section>

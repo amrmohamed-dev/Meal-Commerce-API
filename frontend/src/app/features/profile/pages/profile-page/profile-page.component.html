@@ -1,0 +1,87 @@
+<ng-container *ngIf="profileState$ | async as profileState">
+  <section class="profile-grid" *ngIf="!profileState.loading && profileState.data as currentUser; else loadingOrEmptyTpl">
+    <mat-card class="card-surface photo-card">
+      <h2>Profile Photo</h2>
+      <img
+        [src]="currentUser.image?.url || 'https://placehold.co/420x420?text=Profile'"
+        alt="Profile"
+        class="avatar"
+      />
+
+      <div class="photo-actions">
+        <label class="upload-btn">
+          <input type="file" accept="image/*" (change)="onPhotoSelected($event)" />
+          Upload
+        </label>
+        <button
+          mat-stroked-button
+          color="warn"
+          (click)="deletePhoto()"
+          [disabled]="photoBusy || !currentUser.image?.url"
+        >
+          Remove
+        </button>
+      </div>
+    </mat-card>
+
+    <mat-card class="card-surface details-card">
+      <h1>My Profile</h1>
+      <p class="muted">Update your personal details and shipping information.</p>
+      <p class="form-error" *ngIf="formError">{{ formError }}</p>
+
+      <form class="form-grid mt-2" [formGroup]="form" (ngSubmit)="saveProfile()">
+        <mat-form-field appearance="outline">
+          <mat-label>Name</mat-label>
+          <input matInput formControlName="name" />
+          <mat-error *ngIf="name.touched && name.hasError('required')">
+            Name is required.
+          </mat-error>
+          <mat-error *ngIf="name.touched && name.hasError('minlength')">
+            Name must be at least 3 characters.
+          </mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Phone</mat-label>
+          <input matInput formControlName="phone" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Street</mat-label>
+          <input matInput formControlName="street" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>City</mat-label>
+          <input matInput formControlName="city" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Address Notes</mat-label>
+          <textarea matInput formControlName="notes" rows="3"></textarea>
+        </mat-form-field>
+
+        <div class="action-row">
+          <button mat-flat-button class="brand-btn" [disabled]="busy">
+            {{ busy ? 'Saving...' : 'Save Changes' }}
+          </button>
+          <a mat-button routerLink="/profile/update-password">Update Password</a>
+          <a mat-button routerLink="/profile/favourites">Favourites</a>
+        </div>
+      </form>
+    </mat-card>
+  </section>
+
+  <ng-template #loadingOrEmptyTpl>
+    <div class="loading-wrap" *ngIf="profileState.loading; else emptyTpl">
+      <mat-spinner diameter="42"></mat-spinner>
+    </div>
+  </ng-template>
+
+  <ng-template #emptyTpl>
+    <section class="card-surface empty-state">
+      <mat-icon>person_off</mat-icon>
+      <p class="muted">Profile data is unavailable right now.</p>
+    </section>
+  </ng-template>
+</ng-container>

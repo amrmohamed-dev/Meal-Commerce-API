@@ -1,0 +1,48 @@
+.dashboard {
+  margin-top: 1rem;
+}
+
+h1 {
+  margin: 0;
+  color: #1f3a56;
+}
+
+.quick-links {
+  margin-top: 0.8rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 0.7rem;
+}
+
+.quick {
+  padding: 0.9rem;
+  border-radius: 14px;
+  color: #1f3a56;
+  font-weight: 600;
+}
+
+.loading-wrap {
+  min-height: 220px;
+  display: grid;
+  place-items: center;
+}
+
+.stats-grid {
+  margin-top: 0.8rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 0.7rem;
+}
+
+.stat {
+  padding: 0.85rem;
+}
+
+.stat h3 {
+  margin: 0;
+  color: #f28c38;
+}
+
+.stat p {
+  margin: 0.25rem 0 0;
+}

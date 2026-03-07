@@ -1,0 +1,42 @@
+<section class="page">
+  <mat-card class="card-surface panel">
+    <h1>{{ editingCategoryId ? 'Edit Category' : 'Create Category' }}</h1>
+    <form class="form-grid mt-2" [formGroup]="form" (ngSubmit)="submit()">
+      <mat-form-field appearance="outline">
+        <mat-label>Name</mat-label>
+        <input matInput formControlName="name" />
+      </mat-form-field>
+      <label class="file-input">
+        <input type="file" accept="image/*" (change)="onFileSelected($event)" />
+        Choose image
+      </label>
+      <div class="form-actions">
+        <button mat-flat-button class="brand-btn" [disabled]="busy">
+          {{ busy ? 'Saving...' : editingCategoryId ? 'Update' : 'Create' }}
+        </button>
+        <button *ngIf="editingCategoryId" mat-button type="button" (click)="cancelEdit()">
+          Cancel
+        </button>
+      </div>
+    </form>
+  </mat-card>
+
+  <mat-card class="card-surface panel mt-2">
+    <h2>Categories</h2>
+    <div *ngIf="loading" class="loading-wrap"><mat-spinner diameter="36"></mat-spinner></div>
+
+    <div class="grid" *ngIf="!loading">
+      <article class="item" *ngFor="let category of categories">
+        <img
+          [src]="category.image?.url || 'https://placehold.co/400x250?text=Category'"
+          [alt]="category.name"
+        />
+        <h3>{{ category.name | titlecase }}</h3>
+        <div class="actions">
+          <button mat-button (click)="edit(category)">Edit</button>
+          <button mat-button color="warn" (click)="deleteCategory(category._id)">Delete</button>
+        </div>
+      </article>
+    </div>
+  </mat-card>
+</section>

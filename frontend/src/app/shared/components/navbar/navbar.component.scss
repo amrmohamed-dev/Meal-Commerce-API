@@ -1,0 +1,258 @@
+.toolbar {
+  background: linear-gradient(90deg, #1f3a56 0%, #24466a 70%);
+  color: #fff;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  min-height: 72px;
+}
+
+.toolbar-inner {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.9rem;
+  min-height: 72px;
+}
+
+.brand {
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+}
+
+.brand-logo {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.08);
+  padding: 4px;
+}
+
+.brand-text {
+  line-height: 1;
+  display: inline-block;
+}
+
+.nav-desktop {
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+}
+
+.nav-desktop a,
+.auth-actions a,
+.auth-actions button {
+  color: #fff;
+}
+
+.nav-desktop a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.nav-icon {
+  width: 18px;
+  text-align: center;
+  font-size: 0.95rem;
+}
+
+.cart-badge {
+  background: #ff3d00;
+  color: white;
+  border-radius: 999px;
+  padding: 1px 7px;
+  font-size: 12px;
+  margin-left: 6px;
+  line-height: 1.35;
+}
+
+.mat-mdc-menu-item .nav-icon {
+  margin-right: 0.75rem;
+}
+
+.active-link {
+  color: #f28c38 !important;
+}
+
+.auth-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.login-link {
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 999px;
+}
+
+.mobile-menu-toggle {
+  display: none;
+}
+
+.mobile-actions {
+  display: none;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.mobile-cart-btn {
+  position: relative;
+  color: #fff;
+}
+
+.mobile-badge {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  margin: 0;
+}
+
+.menu-toggle {
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 10px;
+}
+
+.mobile-backdrop {
+  position: fixed;
+  inset: 0;
+  border: 0;
+  background: rgba(15, 25, 37, 0.45);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+  z-index: 1100;
+}
+
+.mobile-backdrop.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.mobile-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  height: 100dvh;
+  width: min(340px, 86vw);
+  background: #ffffff;
+  box-shadow: -10px 0 30px rgba(31, 58, 86, 0.18);
+  z-index: 1200;
+  transform: translateX(100%);
+  transition: transform 0.24s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 0.95rem 1rem 1.25rem;
+}
+
+.mobile-drawer.open {
+  transform: translateX(0);
+}
+
+.mobile-drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 0.2rem;
+  border-bottom: 1px solid rgba(31, 58, 86, 0.08);
+}
+
+.mobile-title {
+  color: #1f3a56;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+}
+
+.mobile-nav-links {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.mobile-nav-links a {
+  color: #1f3a56;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.72rem 0.65rem;
+  border-radius: 10px;
+  font-weight: 500;
+}
+
+.mobile-nav-links a:hover {
+  background: rgba(31, 58, 86, 0.07);
+}
+
+.mobile-auth {
+  margin-top: auto;
+  padding-top: 0.85rem;
+  border-top: 1px solid rgba(31, 58, 86, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.mobile-user {
+  margin: 0 0 0.2rem;
+  color: #1f3a56;
+  font-weight: 700;
+}
+
+.mobile-auth a {
+  color: #1f3a56;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.62rem 0.65rem;
+  border-radius: 10px;
+}
+
+@media (max-width: 980px) {
+  .nav-desktop {
+    display: none;
+  }
+
+  .auth-actions {
+    display: none;
+  }
+
+  .mobile-actions {
+    display: inline-flex;
+  }
+
+  .brand-logo {
+    width: 34px;
+    height: 34px;
+  }
+
+  .brand-text {
+    font-size: 0.95rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .toolbar,
+  .toolbar-inner {
+    min-height: 64px;
+  }
+
+  .brand {
+    gap: 0.45rem;
+  }
+
+  .brand-text {
+    font-size: 0.88rem;
+  }
+
+  .mobile-drawer {
+    width: min(320px, 92vw);
+  }
+}

@@ -1,0 +1,36 @@
+<section class="auth-wrap">
+  <mat-card class="auth-card card-surface">
+    <img class="auth-logo" [src]="logoUrl" alt="Meal Commerce logo" />
+    <h1>Verify Email</h1>
+    <p class="muted">
+      A verified account is required for cart, orders, and profile updates.
+    </p>
+    <p class="form-error" *ngIf="formError">{{ formError }}</p>
+
+    <button
+      mat-stroked-button
+      class="outlined-btn w-full"
+      (click)="sendCode()"
+      [disabled]="sending || resendCountdown > 0"
+    >
+      {{ sending ? 'Sending OTP...' : resendText }}
+    </button>
+
+    <form class="form-grid mt-2" [formGroup]="form" (ngSubmit)="verify()">
+      <mat-form-field appearance="outline">
+        <mat-label>OTP</mat-label>
+        <input matInput formControlName="otp" />
+        <mat-error *ngIf="otp.touched && otp.hasError('required')">
+          OTP is required.
+        </mat-error>
+        <mat-error *ngIf="otp.touched && otp.hasError('minlength')">
+          OTP must be at least 6 digits.
+        </mat-error>
+      </mat-form-field>
+
+      <button mat-flat-button class="brand-btn w-full" [disabled]="verifying">
+        {{ verifying ? 'Verifying...' : 'Verify Email' }}
+      </button>
+    </form>
+  </mat-card>
+</section>
