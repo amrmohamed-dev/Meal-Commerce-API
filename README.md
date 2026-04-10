@@ -31,7 +31,7 @@ This repository focuses on the API layer (authentication, users, meals, cart, or
 
 ## Production Deployment
 
-- URL: [https://meal-commerce-api-production.up.railway.app/](https://meal-commerce-api-production.up.railway.app/)
+- URL: [https://meal-commerce.onrender.com](https://meal-commerce.onrender.com)
 
 ## Frontend Note
 
