@@ -44,7 +44,7 @@ This repository focuses on the API layer (authentication, users, meals, cart, or
 | Amr Mohammed | Team Leader | [github.com/amrmohamed-dev](https://github.com/amrmohamed-dev) |
 | Marwan Abdelruhman | Backend Team Member | [github.com/marrwan20](https://github.com/marrwan20) |
 | Mohammed Hamdy | Backend Team Member | [github.com/Mohamed2247](https://github.com/Mohamed2247) |
-| Rodina Ahmed | Backend Team Member | [github.com/rodinaahmedgamaleldin](https://github.com/rodinaahmedgamaleldin) |
+| Rodina Ahmed | Backend Team Member | [github.com/rodinaahmedgamaleldin](https://github.com/RodinaAhmedd) |
 
 ## Backend Scope
 
