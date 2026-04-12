@@ -2,10 +2,6 @@
   <h1>Order Analytics</h1>
   <p class="muted">Aggregated order metrics grouped by current status.</p>
 
-  <div *ngIf="loading" class="loading-wrap">
-    <mat-spinner diameter="36"></mat-spinner>
-  </div>
-
   <div class="stats-grid" *ngIf="!loading">
     <article class="stat-card" *ngFor="let stat of stats">
       <h2>{{ stat._id | titlecase }}</h2>

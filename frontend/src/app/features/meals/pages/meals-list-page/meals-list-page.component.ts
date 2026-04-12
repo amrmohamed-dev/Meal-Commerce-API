@@ -4,6 +4,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import {
   Observable,
   catchError,
+  combineLatest,
   distinctUntilChanged,
   map,
   of,
@@ -22,6 +23,14 @@ type LoadingState<T> = {
   data: T;
 };
 
+type CategoryFilterItem = Category & {
+  isSelected: boolean;
+};
+
+type CategoryFilterState = LoadingState<CategoryFilterItem[]> & {
+  selectedCategoryId: string;
+};
+
 @Component({
   selector: 'app-meals-list-page',
   standalone: true,
@@ -30,7 +39,10 @@ type LoadingState<T> = {
   styleUrl: './meals-list-page.component.scss',
 })
 export class MealsListPageComponent {
-  protected readonly selectedCategory$: Observable<string> =
+  protected readonly categoryFallbackImage =
+    'https://placehold.co/320x220/fcf1e5/1f3a56?text=Category';
+
+  protected readonly selectedCategoryId$: Observable<string> =
     this.route.queryParamMap.pipe(
       map(
         (params) =>
@@ -53,8 +65,21 @@ export class MealsListPageComponent {
       shareReplay({ bufferSize: 1, refCount: true }),
     );
 
+  protected readonly categoryFilterState$: Observable<CategoryFilterState> =
+    combineLatest([this.categoriesState$, this.selectedCategoryId$]).pipe(
+      map(([categoriesState, selectedCategoryId]) => ({
+        loading: categoriesState.loading,
+        data: categoriesState.data.map((category) => ({
+          ...category,
+          isSelected: category._id === selectedCategoryId,
+        })),
+        selectedCategoryId,
+      })),
+      shareReplay({ bufferSize: 1, refCount: true }),
+    );
+
   protected readonly mealsState$: Observable<LoadingState<Meal[]>> =
-    this.selectedCategory$.pipe(
+    this.selectedCategoryId$.pipe(
       switchMap((categoryId) =>
         this.mealService.getMeals(categoryId || undefined).pipe(
           map((meals) => ({ loading: false, data: meals })),

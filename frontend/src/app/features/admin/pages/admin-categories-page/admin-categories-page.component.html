@@ -23,8 +23,6 @@
 
   <mat-card class="card-surface panel mt-2">
     <h2>Categories</h2>
-    <div *ngIf="loading" class="loading-wrap"><mat-spinner diameter="36"></mat-spinner></div>
-
     <div class="grid" *ngIf="!loading">
       <article class="item" *ngFor="let category of categories">
         <img

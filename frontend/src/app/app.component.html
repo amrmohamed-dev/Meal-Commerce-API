@@ -2,10 +2,6 @@
 
 <main class="main-shell">
   <div class="page-container">
-    <div class="loading-overlay" *ngIf="isLoading$ | async">
-      <mat-spinner diameter="42"></mat-spinner>
-    </div>
-
     <router-outlet></router-outlet>
   </div>
 </main>

@@ -40,7 +40,15 @@
       [routerLink]="['/meals']"
       [queryParams]="{ categoryId: category._id }"
     >
-      {{ category.name | titlecase }}
+      <div class="category-chip__image-wrap">
+        <img
+          class="category-chip__image"
+          [src]="category.image?.url || 'https://placehold.co/320x220/fcf1e5/1f3a56?text=Category'"
+          [alt]="category.name"
+          loading="lazy"
+        />
+      </div>
+      <span class="category-chip__label">{{ category.name | titlecase }}</span>
     </a>
   </div>
 </section>

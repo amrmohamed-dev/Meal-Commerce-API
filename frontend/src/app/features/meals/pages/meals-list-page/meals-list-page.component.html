@@ -1,25 +1,74 @@
-<ng-container *ngIf="categoriesState$ | async as categoriesState">
+<ng-container *ngIf="categoryFilterState$ | async as categoryFilterState">
   <section class="heading card-surface">
-    <div>
+    <div class="heading__copy">
       <h1>Meals</h1>
       <p class="muted">
-        Filter by category and choose the perfect meal for your next order.
+        Explore every dish or jump straight into a category with a faster visual filter.
+      </p>
+    </div>
+    <button
+      *ngIf="categoryFilterState.selectedCategoryId"
+      mat-button
+      type="button"
+      class="outlined-btn clear-filter-btn"
+      (click)="onCategoryChange('')"
+    >
+      Clear Filter
+    </button>
+  </section>
+
+  <section class="category-filter card-surface mt-2">
+    <div class="category-filter__header">
+      <div>
+        <p class="category-filter__eyebrow">Quick Filters</p>
+        <h2>Filter by Category</h2>
+      </div>
+      <p class="muted category-filter__hint">
+        Pick a category card to refresh the meal list instantly.
       </p>
     </div>
 
-    <mat-form-field appearance="outline">
-      <mat-label>Category</mat-label>
-      <mat-select
-        [value]="selectedCategory$ | async"
-        [disabled]="categoriesState.loading"
-        (valueChange)="onCategoryChange($event)"
+    <div *ngIf="categoryFilterState.loading" class="category-filter__loading">
+      <mat-spinner diameter="34"></mat-spinner>
+    </div>
+
+    <div *ngIf="!categoryFilterState.loading" class="category-filter__grid">
+      <button
+        type="button"
+        class="category-filter-card category-filter-card--all"
+        [class.is-active]="!categoryFilterState.selectedCategoryId"
+        [attr.aria-pressed]="!categoryFilterState.selectedCategoryId"
+        (click)="onCategoryChange('')"
       >
-        <mat-option value="">All categories</mat-option>
-        <mat-option *ngFor="let category of categoriesState.data" [value]="category._id">
-          {{ category.name | titlecase }}
-        </mat-option>
-      </mat-select>
-    </mat-form-field>
+        <span class="category-filter-card__icon-wrap">
+          <mat-icon>grid_view</mat-icon>
+        </span>
+        <span class="category-filter-card__label">All Meals</span>
+        <span class="category-filter-card__meta">Browse the full menu</span>
+      </button>
+
+      <button
+        type="button"
+        class="category-filter-card"
+        *ngFor="let category of categoryFilterState.data"
+        [class.is-active]="category.isSelected"
+        [attr.aria-pressed]="category.isSelected"
+        (click)="onCategoryChange(category._id)"
+      >
+        <span class="category-filter-card__image-wrap">
+          <img
+            class="category-filter-card__image"
+            [src]="category.image?.url || categoryFallbackImage"
+            [alt]="category.name"
+            loading="lazy"
+          />
+        </span>
+        <span class="category-filter-card__label">{{ category.name | titlecase }}</span>
+        <span class="category-filter-card__meta">
+          Browse {{ category.name | lowercase }} meals
+        </span>
+      </button>
+    </div>
   </section>
 </ng-container>
 
