@@ -4,8 +4,30 @@
 }
 
 h1 {
-  margin: 0 0 0.7rem;
+  margin: 0;
   color: #1f3a56;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+}
+
+.header p {
+  margin: 0.35rem 0 0;
+  max-width: 60ch;
+}
+
+.summary {
+  min-width: fit-content;
+  padding: 0.45rem 0.8rem;
+  border-radius: 999px;
+  background: rgba(242, 140, 56, 0.12);
+  color: var(--color-secondary);
+  font-weight: 600;
 }
 
 .loading-wrap {
@@ -14,9 +36,36 @@ h1 {
   place-items: center;
 }
 
+.empty-state {
+  min-height: 220px;
+  display: grid;
+  place-items: center;
+  gap: 0.45rem;
+  text-align: center;
+}
+
+.empty-state mat-icon {
+  width: 2.25rem;
+  height: 2.25rem;
+  font-size: 2.25rem;
+  color: var(--color-primary);
+}
+
+.empty-state h2,
+.empty-state p {
+  margin: 0;
+}
+
 .simple-table {
   width: 100%;
   border-collapse: collapse;
+}
+
+.simple-table thead th {
+  color: var(--color-secondary);
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
 .simple-table th,
@@ -24,4 +73,34 @@ h1 {
   padding: 0.55rem;
   border-bottom: 1px solid rgba(31, 58, 86, 0.1);
   text-align: left;
+  vertical-align: top;
+}
+
+.row-updating {
+  background: rgba(242, 140, 56, 0.05);
+}
+
+.status-control {
+  min-width: 170px;
+}
+
+.status-field {
+  width: 100%;
+}
+
+.status-note {
+  display: inline-block;
+  margin-top: -0.2rem;
+  color: var(--color-muted);
+  font-size: 0.8rem;
+}
+
+@media (max-width: 780px) {
+  .header {
+    flex-direction: column;
+  }
+
+  .summary {
+    align-self: flex-start;
+  }
 }

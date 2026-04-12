@@ -144,8 +144,8 @@ export class OrderService {
         tap((order) => {
           const myOrders = this.myOrdersSubject.value;
           const allOrders = this.allOrdersSubject.value;
-          this.myOrdersSubject.next(myOrders.map((o) => (o._id === id ? order : o)));
-          this.allOrdersSubject.next(allOrders.map((o) => (o._id === id ? order : o)));
+          this.myOrdersSubject.next(this.replaceOrderInList(myOrders, order));
+          this.allOrdersSubject.next(this.replaceOrderInList(allOrders, order));
         }),
       );
   }
@@ -241,6 +241,43 @@ export class OrderService {
     this.myOrdersSubject.next([]);
     this.allOrdersSubject.next([]);
     this.orderStatsSubject.next([]);
+  }
+
+  private replaceOrderInList(orders: Order[], incomingOrder: Order): Order[] {
+    return orders.map((order) =>
+      order._id === incomingOrder._id
+        ? this.mergeOrderWithCachedData(order, incomingOrder)
+        : order,
+    );
+  }
+
+  private mergeOrderWithCachedData(
+    existingOrder: Order,
+    incomingOrder: Order,
+  ): Order {
+    return {
+      ...existingOrder,
+      ...incomingOrder,
+      user:
+        typeof incomingOrder.user === 'string' &&
+        typeof existingOrder.user !== 'string'
+          ? existingOrder.user
+          : incomingOrder.user,
+      cartItems: incomingOrder.cartItems.map((item, index) => {
+        const existingItem = existingOrder.cartItems[index];
+
+        return {
+          ...(existingItem ?? {}),
+          ...item,
+          meal:
+            existingItem &&
+            typeof item.meal === 'string' &&
+            typeof existingItem.meal !== 'string'
+              ? existingItem.meal
+              : item.meal,
+        };
+      }),
+    };
   }
 
   private pick<T>(value: T | undefined, key: string): T {

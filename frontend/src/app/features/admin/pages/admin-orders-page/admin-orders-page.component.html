@@ -1,33 +1,66 @@
-<section class="page card-surface">
-  <h1>Manage Orders</h1>
-  <ng-container *ngIf="loading$ | async as loading">
-    <div class="table-wrap" *ngIf="!loading">
+<ng-container *ngIf="ordersState$ | async as ordersState">
+  <section class="page card-surface">
+    <div class="header">
+      <div>
+        <h1>Manage Orders</h1>
+        <p class="muted">
+          Review incoming orders and update their status without leaving the dashboard.
+        </p>
+      </div>
+      <div class="summary" *ngIf="!ordersState.loading">
+        {{ ordersState.data.length }} {{ ordersState.data.length === 1 ? 'order' : 'orders' }}
+      </div>
+    </div>
+
+    <div *ngIf="ordersState.loading" class="loading-wrap">
+      <mat-spinner diameter="40"></mat-spinner>
+    </div>
+
+    <section *ngIf="!ordersState.loading && ordersState.data.length === 0" class="empty-state">
+      <mat-icon>inventory_2</mat-icon>
+      <h2>No orders yet</h2>
+      <p class="muted">New customer orders will appear here once they are placed.</p>
+    </section>
+
+    <div class="table-wrap" *ngIf="!ordersState.loading && ordersState.data.length > 0">
       <table class="simple-table">
         <thead>
           <tr>
             <th>Order</th>
             <th>User</th>
             <th>Total</th>
+            <th>Payment</th>
             <th>Status</th>
             <th>Created</th>
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let order of (orders$ | async) ?? []">
+          <tr *ngFor="let order of ordersState.data" [class.row-updating]="order.isUpdating">
             <td>#{{ order._id.slice(-6).toUpperCase() }}</td>
-            <td>{{ $any(order.user).name || 'N/A' }}</td>
+            <td>{{ order.userName }}</td>
             <td>{{ order.totalPrice | currency: 'USD' : 'symbol' : '1.0-0' }}</td>
+            <td>{{ order.paymentMethod | titlecase }}</td>
             <td>
-              <mat-select [value]="order.status" (valueChange)="updateStatus(order._id, $event)">
-                <mat-option *ngFor="let status of statuses" [value]="status">
-                  {{ status | titlecase }}
-                </mat-option>
-              </mat-select>
+              <div class="status-control">
+                <mat-form-field appearance="outline" class="status-field">
+                  <mat-label>Status</mat-label>
+                  <mat-select
+                    [value]="order.status"
+                    [disabled]="order.isUpdating"
+                    (valueChange)="updateStatus(order, $event)"
+                  >
+                    <mat-option *ngFor="let status of statuses" [value]="status">
+                      {{ status | titlecase }}
+                    </mat-option>
+                  </mat-select>
+                </mat-form-field>
+                <span class="status-note" *ngIf="order.isUpdating">Saving...</span>
+              </div>
             </td>
             <td>{{ order.createdAt | date: 'short' }}</td>
           </tr>
         </tbody>
       </table>
     </div>
-  </ng-container>
-</section>
+  </section>
+</ng-container>
