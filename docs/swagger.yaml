@@ -1,0 +1,1947 @@
+# NOTE:
+# Authentication is handled via httpOnly cookies.
+# When testing protected endpoints in Swagger UI:
+# 1. Call /auth/login first
+# 2. Cookie will be set automatically by the browser
+
+openapi: 3.0.3
+info:
+  title: Meal-Commerce API
+  version: 1.0.0
+  description: |-
+    REST API for Meal-Commerce (food ordering) using Express, MongoDB, and JWT authentication via httpOnly cookies.
+    API routes are mounted under `/api/v1`.
+
+    🔑 Demo Account (User):
+
+    ```
+    email: demo@mealcommerce.com
+    password: demo1234
+    ```
+
+    Note:
+    - This account is already verified and ready to use.
+    - OTP flow may not work in production.
+    - Use this account to test authenticated endpoints.
+externalDocs:
+  description: View full project on GitHub
+  url: https://github.com/amrmohamed-dev/Meal-commerce-API
+tags:
+  - name: Auth
+  - name: Users
+  - name: Categories
+  - name: Meals
+  - name: Reviews
+  - name: Cart
+  - name: Orders
+paths:
+  /api/v1/auth/register:
+    post:
+      tags: [Auth]
+      summary: Register a new account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '201':
+          description: Account created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+  /api/v1/auth/send-otp/{purpose}:
+    post:
+      tags: [Auth]
+      summary: Send an OTP email
+      parameters:
+        - in: path
+          name: purpose
+          required: true
+          schema:
+            type: string
+            enum: [Email Confirmation, Password Recovery]
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SendOtpRequest'
+      responses:
+        '200':
+          description: OTP flow started
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/MessageResponse'
+                  - $ref: '#/components/schemas/AuthResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/v1/auth/verify-email:
+    patch:
+      tags: [Auth]
+      summary: Verify the current user's email
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VerifyEmailRequest'
+      responses:
+        '200':
+          description: Email verified
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/v1/auth/login:
+    post:
+      tags: [Auth]
+      summary: Log in
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Logged in
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/v1/auth/verify-otp/{purpose}:
+    post:
+      tags: [Auth]
+      summary: Verify an OTP code
+      parameters:
+        - in: path
+          name: purpose
+          required: true
+          schema:
+            type: string
+            enum: [Email Confirmation, Password Recovery]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VerifyOtpRequest'
+      responses:
+        '200':
+          description: OTP verified
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /api/v1/auth/reset-password:
+    patch:
+      tags: [Auth]
+      summary: Reset password using OTP
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResetPasswordRequest'
+      responses:
+        '200':
+          description: Password reset
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /api/v1/auth/logout:
+    get:
+      tags: [Auth]
+      summary: Log out
+      responses:
+        '200':
+          description: Logged out
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LogoutResponse'
+
+  /api/v1/users/me:
+    get:
+      tags: [Users]
+      summary: Get current user
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Current user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    patch:
+      tags: [Users]
+      summary: Update current user profile
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateMeRequest'
+      responses:
+        '200':
+          description: User updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    delete:
+      tags: [Users]
+      summary: Delete current user
+      security:
+        - cookieAuth: []
+      responses:
+        '204':
+          description: User deleted
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/v1/users/me/update-password:
+    patch:
+      tags: [Users]
+      summary: Update current user password
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdatePasswordRequest'
+      responses:
+        '200':
+          description: Password updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /api/v1/users/me/favourites:
+    get:
+      tags: [Users]
+      summary: Get current user's favourite meals
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Favourite meals
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FavouriteMealsResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /api/v1/users/me/favourites/{mealId}:
+    patch:
+      tags: [Users]
+      summary: Toggle a meal in favourites
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/MealId'
+      responses:
+        '200':
+          description: Favourite updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FavouriteMealsResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/v1/users/me/photo:
+    patch:
+      tags: [Users]
+      summary: Upload or replace profile photo
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [image]
+              properties:
+                image:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: Photo uploaded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserMutationResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    delete:
+      tags: [Users]
+      summary: Delete profile photo
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Photo deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserMutationResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /api/v1/users:
+    get:
+      tags: [Users]
+      summary: Get all users
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: User list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UsersResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    post:
+      tags: [Users]
+      summary: Create a user
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminCreateUserRequest'
+      responses:
+        '201':
+          description: User created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminCreateUserResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+  /api/v1/users/{id}:
+    get:
+      tags: [Users]
+      summary: Get one user by id
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/UserId'
+      responses:
+        '200':
+          description: User details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    patch:
+      tags: [Users]
+      summary: Update a user by id
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/UserId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminUpdateUserRequest'
+      responses:
+        '200':
+          description: User updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      tags: [Users]
+      summary: Delete a user by id
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/UserId'
+      responses:
+        '204':
+          description: User deleted
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/v1/users/{id}/role:
+    patch:
+      tags: [Users]
+      summary: Update a user's role
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/UserId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUserRoleRequest'
+      responses:
+        '200':
+          description: Role updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/v1/categories:
+    get:
+      tags: [Categories]
+      summary: Get all categories
+      responses:
+        '200':
+          description: Category list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CategoriesResponse'
+    post:
+      tags: [Categories]
+      summary: Create a category
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CategoryFormData'
+      responses:
+        '201':
+          description: Category created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CategoryResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /api/v1/categories/{id}:
+    get:
+      tags: [Categories]
+      summary: Get one category
+      parameters:
+        - $ref: '#/components/parameters/CategoryId'
+      responses:
+        '200':
+          description: Category details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CategoryResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    patch:
+      tags: [Categories]
+      summary: Update a category
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/CategoryId'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CategoryFormData'
+      responses:
+        '200':
+          description: Category updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CategoryResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      tags: [Categories]
+      summary: Delete a category
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/CategoryId'
+      responses:
+        '204':
+          description: Category deleted
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/v1/meals:
+    get:
+      tags: [Meals]
+      summary: Get all meals
+      parameters:
+        - in: query
+          name: categoryId
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Meal list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MealsResponse'
+    post:
+      tags: [Meals]
+      summary: Create a meal
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/MealFormData'
+      responses:
+        '201':
+          description: Meal created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MealMutationResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/v1/meals/{id}:
+    get:
+      tags: [Meals]
+      summary: Get one meal
+      parameters:
+        - $ref: '#/components/parameters/MealPathId'
+      responses:
+        '200':
+          description: Meal details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MealResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    patch:
+      tags: [Meals]
+      summary: Update a meal
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/MealPathId'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/MealFormDataUpdate'
+      responses:
+        '200':
+          description: Meal updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MealMutationResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      tags: [Meals]
+      summary: Delete a meal
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/MealPathId'
+      responses:
+        '204':
+          description: Meal deleted
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/v1/reviews:
+    get:
+      tags: [Reviews]
+      summary: Get all reviews
+      parameters:
+        - in: query
+          name: mealId
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Review list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReviewsResponse'
+    post:
+      tags: [Reviews]
+      summary: Create a review
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateReviewRequest'
+      responses:
+        '201':
+          description: Review created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReviewResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/v1/reviews/{id}:
+    get:
+      tags: [Reviews]
+      summary: Get one review
+      parameters:
+        - $ref: '#/components/parameters/ReviewId'
+      responses:
+        '200':
+          description: Review details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReviewResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    patch:
+      tags: [Reviews]
+      summary: Update a review
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ReviewId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateReviewRequest'
+      responses:
+        '200':
+          description: Review updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReviewResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      tags: [Reviews]
+      summary: Delete a review
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ReviewId'
+      responses:
+        '204':
+          description: Review deleted
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/v1/cart:
+    get:
+      tags: [Cart]
+      summary: Get current user's cart
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Cart data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CartResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    post:
+      tags: [Cart]
+      summary: Add a meal to cart
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddToCartRequest'
+      responses:
+        '201':
+          description: Item added
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CartResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/v1/cart/clear:
+    delete:
+      tags: [Cart]
+      summary: Clear the cart
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Cart cleared
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CartResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/v1/cart/{mealId}:
+    patch:
+      tags: [Cart]
+      summary: Update a cart item's quantity
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/MealId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateCartItemRequest'
+      responses:
+        '200':
+          description: Cart updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CartResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      tags: [Cart]
+      summary: Remove a meal from cart
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/MealId'
+      responses:
+        '200':
+          description: Cart updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CartResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/v1/orders/stats:
+    get:
+      tags: [Orders]
+      summary: Get order statistics
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Aggregated stats
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderStatsResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /api/v1/orders:
+    post:
+      tags: [Orders]
+      summary: Create an order from the current cart
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateOrderRequest'
+      responses:
+        '201':
+          description: Order created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    get:
+      tags: [Orders]
+      summary: Get all orders
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Order list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrdersResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /api/v1/orders/me:
+    get:
+      tags: [Orders]
+      summary: Get current user's orders
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Current user's orders
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrdersResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /api/v1/orders/{id}:
+    get:
+      tags: [Orders]
+      summary: Get one order
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/OrderId'
+      responses:
+        '200':
+          description: Order details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/v1/orders/{id}/cancel:
+    patch:
+      tags: [Orders]
+      summary: Cancel an order
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/OrderId'
+      responses:
+        '200':
+          description: Order cancelled
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/v1/orders/{id}/status:
+    patch:
+      tags: [Orders]
+      summary: Update an order's status
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/OrderId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateOrderStatusRequest'
+      responses:
+        '200':
+          description: Order updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: jwt
+  parameters:
+    UserId:
+      in: path
+      name: id
+      required: true
+      schema:
+        type: string
+    CategoryId:
+      in: path
+      name: id
+      required: true
+      schema:
+        type: string
+    MealId:
+      in: path
+      name: mealId
+      required: true
+      schema:
+        type: string
+    MealPathId:
+      in: path
+      name: id
+      required: true
+      schema:
+        type: string
+    ReviewId:
+      in: path
+      name: id
+      required: true
+      schema:
+        type: string
+    OrderId:
+      in: path
+      name: id
+      required: true
+      schema:
+        type: string
+  responses:
+    BadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Unauthorized:
+      description: Missing or invalid jwt cookie
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Forbidden:
+      description: Authenticated but not allowed to perform this action
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Conflict:
+      description: Resource conflict
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+  schemas:
+    ErrorResponse:
+      type: object
+      required: [status, message]
+      properties:
+        status:
+          type: string
+          enum: [fail, error]
+        message:
+          type: string
+
+    MessageResponse:
+      type: object
+      required: [status, message]
+      properties:
+        status:
+          type: string
+          example: success
+        message:
+          type: string
+
+    LogoutResponse:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          example: success
+
+    ImageAsset:
+      type: object
+      properties:
+        url:
+          type: string
+          nullable: true
+        publicId:
+          type: string
+          nullable: true
+
+    Address:
+      type: object
+      properties:
+        street:
+          type: string
+        city:
+          type: string
+        notes:
+          type: string
+
+    ShippingAddress:
+      type: object
+      required: [street, city, phone]
+      properties:
+        street:
+          type: string
+        city:
+          type: string
+        phone:
+          type: string
+
+    CategorySummary:
+      type: object
+      required: [_id, name]
+      properties:
+        _id:
+          type: string
+        name:
+          type: string
+
+    Category:
+      allOf:
+        - $ref: '#/components/schemas/CategorySummary'
+        - type: object
+          properties:
+            image:
+              $ref: '#/components/schemas/ImageAsset'
+
+    MealNameReference:
+      type: object
+      required: [_id, name]
+      properties:
+        _id:
+          type: string
+        name:
+          type: string
+
+    MealSummary:
+      type: object
+      required: [_id, name]
+      properties:
+        _id:
+          type: string
+        name:
+          type: string
+        price:
+          type: number
+        image:
+          $ref: '#/components/schemas/ImageAsset'
+
+    User:
+      type: object
+      required: [_id, name, email, role]
+      properties:
+        _id:
+          type: string
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        role:
+          type: string
+          enum: [user, admin]
+        phone:
+          type: string
+        address:
+          $ref: '#/components/schemas/Address'
+        image:
+          $ref: '#/components/schemas/ImageAsset'
+        favouriteMeals:
+          type: array
+          items:
+            $ref: '#/components/schemas/FavouriteMeal'
+        createdAt:
+          type: string
+          format: date-time
+
+    Meal:
+      type: object
+      required:
+        - _id
+        - name
+        - description
+        - price
+        - ratingAverage
+        - ratingQuantity
+        - category
+        - image
+        - preparationTime
+      properties:
+        _id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        price:
+          type: number
+        ratingAverage:
+          type: number
+        ratingQuantity:
+          type: integer
+        category:
+          oneOf:
+            - type: string
+            - $ref: '#/components/schemas/CategorySummary'
+            - $ref: '#/components/schemas/Category'
+        image:
+          $ref: '#/components/schemas/ImageAsset'
+        preparationTime:
+          type: number
+        createdAt:
+          type: string
+          format: date-time
+
+    FavouriteMeal:
+      type: object
+      required: [meal, addedAt]
+      properties:
+        meal:
+          oneOf:
+            - type: string
+            - $ref: '#/components/schemas/MealSummary'
+            - $ref: '#/components/schemas/Meal'
+        addedAt:
+          type: string
+          format: date-time
+
+    Review:
+      type: object
+      required: [_id, meal, user, rating, createdAt]
+      properties:
+        _id:
+          type: string
+        meal:
+          oneOf:
+            - type: string
+            - $ref: '#/components/schemas/MealNameReference'
+            - $ref: '#/components/schemas/Meal'
+        user:
+          oneOf:
+            - type: string
+            - $ref: '#/components/schemas/User'
+        rating:
+          type: number
+          minimum: 1
+          maximum: 5
+        comment:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+
+    CartItem:
+      type: object
+      required: [meal, quantity, price]
+      properties:
+        meal:
+          oneOf:
+            - type: string
+            - $ref: '#/components/schemas/MealSummary'
+            - $ref: '#/components/schemas/Meal'
+        quantity:
+          type: integer
+          minimum: 1
+        price:
+          type: number
+          minimum: 0
+
+    Cart:
+      type: object
+      required: [user, cartItems, totalPrice]
+      properties:
+        _id:
+          type: string
+        user:
+          type: string
+        cartItems:
+          type: array
+          items:
+            $ref: '#/components/schemas/CartItem'
+        totalPrice:
+          type: number
+
+    Order:
+      type: object
+      required:
+        - _id
+        - user
+        - cartItems
+        - totalPrice
+        - status
+        - paymentMethod
+        - isPaid
+        - shippingAddress
+        - createdAt
+      properties:
+        _id:
+          type: string
+        user:
+          oneOf:
+            - type: string
+            - $ref: '#/components/schemas/User'
+        cartItems:
+          type: array
+          items:
+            $ref: '#/components/schemas/CartItem'
+        totalPrice:
+          type: number
+        status:
+          type: string
+          enum: [pending, confirmed, preparing, shipped, delivered, cancelled]
+        paymentMethod:
+          type: string
+          enum: [cash, card]
+        isPaid:
+          type: boolean
+        paidAt:
+          type: string
+          format: date-time
+          nullable: true
+        shippingAddress:
+          $ref: '#/components/schemas/ShippingAddress'
+        createdAt:
+          type: string
+          format: date-time
+
+    OrderStat:
+      type: object
+      required: [_id, nOrders, totalRevenue, avgOrderPrice]
+      properties:
+        _id:
+          type: string
+          enum: [pending, confirmed, preparing, shipped, delivered, cancelled]
+        nOrders:
+          type: integer
+        totalRevenue:
+          type: number
+        avgOrderPrice:
+          type: number
+
+    RegisterRequest:
+      type: object
+      required: [name, email, password, passwordConfirm]
+      properties:
+        name:
+          type: string
+          minLength: 3
+          maxLength: 35
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          pattern: '^[a-zA-Z0-9]{8,30}$'
+        passwordConfirm:
+          type: string
+          pattern: '^[a-zA-Z0-9]{8,30}$'
+
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+          example: demo@mealcommerce.com
+        password:
+          type: string
+          pattern: '^[a-zA-Z0-9]{8,30}$'
+          example: demo1234
+
+    SendOtpRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+
+    VerifyEmailRequest:
+      type: object
+      required: [otp]
+      properties:
+        otp:
+          type: string
+
+    VerifyOtpRequest:
+      type: object
+      required: [email, otp]
+      properties:
+        email:
+          type: string
+          format: email
+        otp:
+          type: string
+
+    ResetPasswordRequest:
+      type: object
+      required: [email, otp, password, passwordConfirm]
+      properties:
+        email:
+          type: string
+          format: email
+        otp:
+          type: string
+        password:
+          type: string
+          pattern: '^[a-zA-Z0-9]{8,30}$'
+        passwordConfirm:
+          type: string
+          pattern: '^[a-zA-Z0-9]{8,30}$'
+
+    UpdatePasswordRequest:
+      type: object
+      required: [currentPassword, password, passwordConfirm]
+      properties:
+        currentPassword:
+          type: string
+          pattern: '^[a-zA-Z0-9]{8,30}$'
+        password:
+          type: string
+          pattern: '^[a-zA-Z0-9]{8,30}$'
+        passwordConfirm:
+          type: string
+          pattern: '^[a-zA-Z0-9]{8,30}$'
+
+    UpdateMeRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        phone:
+          type: string
+        address:
+          $ref: '#/components/schemas/Address'
+
+    AdminCreateUserRequest:
+      type: object
+      required: [name, email, password]
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+        phone:
+          type: string
+        address:
+          $ref: '#/components/schemas/Address'
+        isVerified:
+          type: boolean
+
+    AdminUpdateUserRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+        phone:
+          type: string
+        address:
+          $ref: '#/components/schemas/Address'
+        isVerified:
+          type: boolean
+
+    UpdateUserRoleRequest:
+      type: object
+      required: [role]
+      properties:
+        role:
+          type: string
+          enum: [user, admin]
+
+    CategoryFormData:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+        image:
+          type: string
+          format: binary
+
+    MealFormData:
+      type: object
+      required: [name, description, price, categoryId, preparationTime, image]
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        price:
+          type: number
+        categoryId:
+          type: string
+        preparationTime:
+          type: number
+        image:
+          type: string
+          format: binary
+
+    MealFormDataUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        price:
+          type: number
+        categoryId:
+          type: string
+        preparationTime:
+          type: number
+        image:
+          type: string
+          format: binary
+
+    CreateReviewRequest:
+      type: object
+      required: [mealId, rating]
+      properties:
+        mealId:
+          type: string
+        rating:
+          type: number
+          minimum: 1
+          maximum: 5
+        comment:
+          type: string
+
+    UpdateReviewRequest:
+      type: object
+      properties:
+        rating:
+          type: number
+          minimum: 1
+          maximum: 5
+        comment:
+          type: string
+
+    AddToCartRequest:
+      type: object
+      required: [mealId]
+      properties:
+        mealId:
+          type: string
+        quantity:
+          type: integer
+          minimum: 1
+
+    UpdateCartItemRequest:
+      type: object
+      required: [quantity]
+      properties:
+        quantity:
+          type: integer
+          minimum: 1
+
+    CreateOrderRequest:
+      type: object
+      required: [shippingAddress]
+      properties:
+        shippingAddress:
+          $ref: '#/components/schemas/ShippingAddress'
+
+    UpdateOrderStatusRequest:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [pending, confirmed, preparing, shipped, delivered, cancelled]
+
+    AuthResponse:
+      type: object
+      required: [status, message, data]
+      properties:
+        status:
+          type: string
+          example: success
+        message:
+          type: string
+        data:
+          type: object
+          required: [user]
+          properties:
+            user:
+              $ref: '#/components/schemas/User'
+
+    UserResponse:
+      type: object
+      required: [status, data]
+      properties:
+        status:
+          type: string
+          example: success
+        data:
+          type: object
+          required: [user]
+          properties:
+            user:
+              $ref: '#/components/schemas/User'
+
+    UserMutationResponse:
+      type: object
+      required: [status, message, data]
+      properties:
+        status:
+          type: string
+          example: success
+        message:
+          type: string
+        data:
+          type: object
+          required: [user]
+          properties:
+            user:
+              $ref: '#/components/schemas/User'
+
+    UsersResponse:
+      type: object
+      required: [status, data]
+      properties:
+        status:
+          type: string
+          example: success
+        data:
+          type: object
+          required: [users]
+          properties:
+            users:
+              type: array
+              items:
+                $ref: '#/components/schemas/User'
+
+    AdminCreateUserResponse:
+      type: object
+      required: [success, message, data]
+      properties:
+        success:
+          type: string
+          example: success
+        message:
+          type: string
+        data:
+          type: object
+          required: [user]
+          properties:
+            user:
+              $ref: '#/components/schemas/User'
+
+    FavouriteMealsResponse:
+      type: object
+      required: [status, data]
+      properties:
+        status:
+          type: string
+          example: success
+        message:
+          type: string
+        data:
+          type: object
+          required: [favouriteMeals]
+          properties:
+            favouriteMeals:
+              type: array
+              items:
+                $ref: '#/components/schemas/FavouriteMeal'
+
+    CategoryResponse:
+      type: object
+      required: [status, data]
+      properties:
+        status:
+          type: string
+          example: success
+        data:
+          type: object
+          required: [category]
+          properties:
+            category:
+              $ref: '#/components/schemas/Category'
+
+    CategoriesResponse:
+      type: object
+      required: [status, data]
+      properties:
+        status:
+          type: string
+          example: success
+        data:
+          type: object
+          required: [categories]
+          properties:
+            categories:
+              type: array
+              items:
+                $ref: '#/components/schemas/Category'
+
+    MealResponse:
+      type: object
+      required: [status, data]
+      properties:
+        status:
+          type: string
+          example: success
+        data:
+          type: object
+          required: [meal]
+          properties:
+            meal:
+              $ref: '#/components/schemas/Meal'
+
+    MealMutationResponse:
+      type: object
+      required: [status, data]
+      properties:
+        status:
+          type: string
+          example: success
+        message:
+          type: string
+        data:
+          type: object
+          required: [meal]
+          properties:
+            meal:
+              $ref: '#/components/schemas/Meal'
+
+    MealsResponse:
+      type: object
+      required: [status, data]
+      properties:
+        status:
+          type: string
+          example: success
+        data:
+          type: object
+          required: [meals]
+          properties:
+            meals:
+              type: array
+              items:
+                $ref: '#/components/schemas/Meal'
+
+    ReviewResponse:
+      type: object
+      required: [status, data]
+      properties:
+        status:
+          type: string
+          example: success
+        data:
+          type: object
+          required: [review]
+          properties:
+            review:
+              $ref: '#/components/schemas/Review'
+
+    ReviewsResponse:
+      type: object
+      required: [status, data]
+      properties:
+        status:
+          type: string
+          example: success
+        data:
+          type: object
+          required: [reviews]
+          properties:
+            reviews:
+              type: array
+              items:
+                $ref: '#/components/schemas/Review'
+
+    CartResponse:
+      type: object
+      required: [status, data]
+      properties:
+        status:
+          type: string
+          example: success
+        data:
+          type: object
+          required: [cart]
+          properties:
+            cart:
+              $ref: '#/components/schemas/Cart'
+
+    OrderResponse:
+      type: object
+      required: [status, data]
+      properties:
+        status:
+          type: string
+          example: success
+        data:
+          type: object
+          required: [order]
+          properties:
+            order:
+              $ref: '#/components/schemas/Order'
+
+    OrdersResponse:
+      type: object
+      required: [status, data]
+      properties:
+        status:
+          type: string
+          example: success
+        data:
+          type: object
+          required: [orders]
+          properties:
+            orders:
+              type: array
+              items:
+                $ref: '#/components/schemas/Order'
+
+    OrderStatsResponse:
+      type: object
+      required: [status, data]
+      properties:
+        status:
+          type: string
+          example: success
+        data:
+          type: object
+          required: [stats]
+          properties:
+            stats:
+              type: array
+              items:
+                $ref: '#/components/schemas/OrderStat'

@@ -3,6 +3,8 @@ import { existsSync } from 'fs';
 import express from 'express';
 import morgan from 'morgan';
 import cookieParser from 'cookie-parser';
+import swaggerUi from 'swagger-ui-express';
+import YAML from 'yamljs';
 import authRouter from './modules/auth/auth.route.js';
 import userRouter from './modules/user/user.route.js';
 import categoryRouter from './modules/category/category.route.js';
@@ -14,6 +16,9 @@ import AppError from './utils/error/appError.js';
 import globalErrorHandler from './middlewares/globalErrorHandler.js';
 
 const app = express();
+const swaggerDocument = YAML.load(
+  path.join(process.cwd(), 'docs', 'swagger.yaml'),
+);
 
 app.enable('trust proxy');
 
@@ -25,6 +30,16 @@ app.disable('x-powered-by');
 
 app.use(cookieParser());
 app.use(express.json({ limit: '5kb' }));
+
+app.use(
+  '/api-docs',
+  swaggerUi.serve,
+  swaggerUi.setup(swaggerDocument, {
+    swaggerOptions: {
+      withCredentials: true,
+    },
+  }),
+);
 
 app.use('/api/v1/auth', authRouter);
 app.use('/api/v1/users', userRouter);
